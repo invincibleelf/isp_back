@@ -5,6 +5,7 @@ namespace App\Http\Controllers\APIControllers;
 use App\User;
 use App\PasswordResets;
 use App\SendMailable;
+use Illuminate\Support\Facades\Log;
 use Mail;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -25,6 +26,8 @@ class AuthController extends Controller
      use RegistersUsers;
         
     public function register(Guard $auth, Request $request) {
+
+        Log::info("Request Register");
         
         $fields = ['email', 'password', 'name'];
         // grab credentials from the request
