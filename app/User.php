@@ -15,7 +15,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-       'email', 'password', 'phone','national_id'
+        'email', 'password', 'phone', 'national_id'
     ];
 
     /**
@@ -49,15 +49,22 @@ class User extends Authenticatable
         return false;
     }
 
-    public function hasRole($role) {
-        if($this->roles()->where('name',$role)->first()){
+    public function hasRole($role)
+    {
+        if ($this->roles()->where('name', $role)->first()) {
             return true;
         }
 
         return false;
     }
 
-    public function userDetails() {
+    public function userDetails()
+    {
         return $this->hasOne('App\UserDetail');
+    }
+
+    public function bankAccount()
+    {
+        return $this->hasOne('App\BankAccount');
     }
 }

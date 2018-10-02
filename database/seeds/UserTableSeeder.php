@@ -3,6 +3,7 @@
 use App\Role;
 use App\User;
 use App\UserDetail;
+use App\BankAccount;
 use Illuminate\Database\Seeder;
 
 class UserTableSeeder extends Seeder
@@ -52,6 +53,12 @@ class UserTableSeeder extends Seeder
         $agentDetail->location = "2/22 Elizabeth st, Melbourne VIC 3000";
 
         $agent->userDetails()->save($agentDetail);
+
+        $bank = new BankAccount();
+        $bank -> account_number = "83838383";
+        $bank->account_name = "CLPS Account";
+        $bank ->bank_name = "ANZ";
+        $agent->bankAccount()->save($bank);
 
         $agent->roles()->attach($role_agent);
 //

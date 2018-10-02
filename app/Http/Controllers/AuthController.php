@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\BankAccount;
 use App\Role;
 use App\User;
 use App\PasswordResets;
@@ -32,37 +33,10 @@ class AuthController extends Controller
     public function register(Guard $auth, Request $request)
     {
 
-        Log::info("Initlaize User Student Registration with email : " . $request['email']."and Role :".$request['role']);
+        Log::info("Initlaize User Student Registration with email : " . $request['email'] . "and Role :" . $request['role']);
 
-        $fields = ['firstName', 'lastName', 'middleName', 'dob', 'email', 'gender', 'password', 'confirmPassword', 'phone', 'nationalId', 'role'];
-        // grab credentials from the request
-        $credentials = $request->only($fields);
 
-        $validator = Validator::make(
-            $credentials,
-            [
-                'firstName' => 'required|max:255',
-                'lastName' => 'required|max:255',
-                'middleName => max:255',
-                'dob' => 'required|date',
-                'gender' => 'required',
-                'phone' => 'required',
-                'email' => 'required|email|max:255|unique:users',
-                'nationalId' => 'required|unique:users,national_id',
-                'password' => 'required|min:6',
-                'confirmPassword' => 'required_with:password|same:password',
-                'role' => 'required'
-            ]
-        );
-        if ($validator->fails()) {
-            return response([
-                'success' => false,
-                'message' => $validator->messages(),
-                'status_code' => 400
-            ]);
-        }
-
-        $role = Role::where('name', $credentials['role'])->first();
+        $role = Role::where('name', $request['role'])->first();
 
         if ($role === null) {
             return response([
@@ -72,14 +46,69 @@ class AuthController extends Controller
             ]);
         }
 
+
         switch ($role->name) {
             case "student":
+                $fields = ['firstName', 'lastName', 'middleName', 'dob', 'email', 'gender', 'password', 'confirmPassword', 'phone', 'nationalId', 'role'];
+                // grab credentials from the request
+                $credentials = $request->only($fields);
+                $validator = Validator::make(
+                    $credentials,
+                    [
+                        'firstName' => 'required|max:255',
+                        'lastName' => 'required|max:255',
+                        'middleName => max:255',
+                        'dob' => 'required|date',
+                        'gender' => 'required',
+                        'phone' => 'required',
+                        'email' => 'required|email|max:255|unique:users',
+                        'nationalId' => 'required|unique:users,national_id',
+                        'password' => 'required|min:6',
+                        'confirmPassword' => 'required_with:password|same:password',
+                        'role' => 'required'
+                    ]
+                );
+                if ($validator->fails()) {
+                    return response([
+                        'success' => false,
+                        'message' => $validator->messages(),
+                        'status_code' => 400
+                    ]);
+                }
+
                 $user = $this->createStudent($credentials);
                 return response($user->only(['email', 'token']));
                 break;
 
             case "agent":
-                return response([$role]);
+                $fields = ['agentName', 'location', 'email', 'phone', 'password', 'confirmPassword', 'nationalId', 'legalRegistrationNumber', 'bankAccountNumber', 'bankAccountName', 'openingBank', 'role'];
+                // grab credentials from the request
+                $credentials = $request->only($fields);
+                $validator = Validator::make(
+                    $credentials,
+                    [
+                        'agentName' => 'required|max:255',
+                        'phone' => 'required',
+                        'email' => 'required|email|max:255|unique:users',
+                        'nationalId' => 'required|unique:users,national_id',
+                        'password' => 'required|min:6',
+                        'confirmPassword' => 'required_with:password|same:password',
+                        'bankAccountNumber' => 'required',
+                        'bankAccountName' => 'required',
+                        'openingBank' => 'required',
+                        'role' => 'required'
+                    ]
+                );
+                if ($validator->fails()) {
+                    return response([
+                        'success' => false,
+                        'message' => $validator->messages(),
+                        'status_code' => 400
+                    ]);
+                }
+
+                $user = $this->createAgent($credentials);
+                return response($user->only(['email', 'token']));
                 break;
 
             default:
@@ -134,7 +163,43 @@ class AuthController extends Controller
 
     protected function createAgent($credentials)
     {
-        //TODO Implement Agent Registration
+        DB::beginTransaction();
+        try {
+            $user = User::create([
+                'phone' => $credentials['phone'],
+                'email' => $credentials['email'],
+                'password' => bcrypt($credentials['password']),
+                'national_id' => $credentials['nationalId']
+            ]);
+
+            $userDetail = new UserDetail();
+            $userDetail->agent_name = $credentials['agentName'];
+            $userDetail->location = $credentials['location'];
+            $userDetail->legal_registration_number = $credentials['legalRegistrationNumber'];
+
+            $user->userDetails()->save($userDetail);
+
+
+            $bank = new BankAccount();
+            $bank -> account_number = $credentials['bankAccountNumber'];
+            $bank->account_name =  $credentials['bankAccountName'];
+            $bank ->bank_name =  $credentials['openingBank'];
+
+            $user->bankAccount()->save($bank);
+
+            $user['token'] = $this->tokenFromUser($user['id']);
+
+
+            $user->roles()->attach(Role::where('name', $credentials['role'])->first());
+
+            DB::commit();
+            return $user;
+
+        } catch (Exception $e) {
+            //Roll back database if error
+            DB::rollback();
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
 
     }
 
