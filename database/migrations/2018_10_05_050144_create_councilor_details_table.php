@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateBankAccountsTable extends Migration
+class CreateCouncilorDetailsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,12 +13,14 @@ class CreateBankAccountsTable extends Migration
      */
     public function up()
     {
-        Schema::create('bank_accounts', function (Blueprint $table) {
+        Schema::create('councilor_details', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('user_id');
-            $table->string('account_name');
-            $table->string('account_number');
-            $table->string('bank_name');
+            $table->string('firstname', 255);
+            $table->string('middlename', 255)->nullable();
+            $table->string('lastname', 255);
+            $table->string('national_id')->unique();
+            $table->integer('agent_id')->nullable();
             $table->timestamps();
         });
     }
@@ -30,6 +32,6 @@ class CreateBankAccountsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('bank_accounts');
+        Schema::dropIfExists('councilor_details');
     }
 }

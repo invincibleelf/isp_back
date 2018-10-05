@@ -12,11 +12,11 @@ class UserTable extends Migration
     public function up()
     {
 
-        Schema::create('users', function (Blueprint $table) {
+        Schema::create('login_users_c', function (Blueprint $table) {
             $table->increments('id')->index()->unsigned();
+            $table->integer('role_id');
             $table->string('email')->unique();
             $table->string('phone');
-            $table->string('national_id') ->unique();
             $table->string('password');
             $table->rememberToken();
             $table->boolean('verified')->default(false);
@@ -44,7 +44,7 @@ class UserTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('users');
+        Schema::dropIfExists('login_users_c');
         Schema::dropIfExists('password_resets');
     }
 }

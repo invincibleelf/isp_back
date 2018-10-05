@@ -2,18 +2,23 @@
 
 namespace App\Http\Controllers;
 
-use App\BankAccount;
+use App\CouncilorDetail;
+use App\AgentDetail;
+
+use App\Http\Resources\UserResource;
 use App\Role;
 use App\User;
 use App\PasswordResets;
 use App\SendMailable;
-use App\UserDetail;
+use App\StudentDetail;
+use Illuminate\Auth\Events\Login;
 use Illuminate\Support\Facades\Log;
 use Mail;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Support\Facades\DB;
@@ -30,11 +35,11 @@ class AuthController extends Controller
 
     use RegistersUsers;
 
+
     public function register(Guard $auth, Request $request)
     {
 
-        Log::info("Initlaize User Student Registration with email : " . $request['email'] . "and Role :" . $request['role']);
-
+        Log::info("Initlaize User Registration with email : " . $request['email'] . "and Role :" . $request['role']);
 
         $role = Role::where('name', $request['role'])->first();
 
@@ -52,17 +57,19 @@ class AuthController extends Controller
                 $fields = ['firstName', 'lastName', 'middleName', 'dob', 'email', 'gender', 'password', 'confirmPassword', 'phone', 'nationalId', 'role'];
                 // grab credentials from the request
                 $credentials = $request->only($fields);
+
+
                 $validator = Validator::make(
                     $credentials,
                     [
                         'firstName' => 'required|max:255',
                         'lastName' => 'required|max:255',
                         'middleName => max:255',
-                        'dob' => 'required|date',
+                        'dob' => 'required',
                         'gender' => 'required',
                         'phone' => 'required',
-                        'email' => 'required|email|max:255|unique:users',
-                        'nationalId' => 'required|unique:users,national_id',
+                        'email' => 'required|email|max:255|unique:login_users_c',
+                        'nationalId' => 'required|unique:student_details,national_id',
                         'password' => 'required|min:6',
                         'confirmPassword' => 'required_with:password|same:password',
                         'role' => 'required'
@@ -76,12 +83,17 @@ class AuthController extends Controller
                     ]);
                 }
 
+                Log::info("Create Student");
                 $user = $this->createStudent($credentials);
-                return response($user->only(['email', 'token']));
+                return response([
+                    "email" => $user->email,
+                    "token" => $user->token,
+                    "role" => $user->role->name
+                ]);
                 break;
 
             case "agent":
-                $fields = ['agentName', 'location', 'email', 'phone', 'password', 'confirmPassword', 'nationalId', 'legalRegistrationNumber', 'bankAccountNumber', 'bankAccountName', 'openingBank', 'role'];
+                $fields = ['agentName', 'location', 'email', 'phone', 'password', 'confirmPassword', 'nationalId', 'legalRegistrationNumber', 'bankAccountNumber', 'bankAccountName', 'validBankOpening', 'role'];
                 // grab credentials from the request
                 $credentials = $request->only($fields);
                 $validator = Validator::make(
@@ -89,13 +101,13 @@ class AuthController extends Controller
                     [
                         'agentName' => 'required|max:255',
                         'phone' => 'required',
-                        'email' => 'required|email|max:255|unique:users',
-                        'nationalId' => 'required|unique:users,national_id',
+                        'email' => 'required|email|max:255|unique:login_users_c',
+                        'nationalId' => 'required|unique:agent_details,national_id',
                         'password' => 'required|min:6',
                         'confirmPassword' => 'required_with:password|same:password',
                         'bankAccountNumber' => 'required',
                         'bankAccountName' => 'required',
-                        'openingBank' => 'required',
+                        'validBankOpening' => 'required',
                         'role' => 'required'
                     ]
                 );
@@ -108,7 +120,11 @@ class AuthController extends Controller
                 }
 
                 $user = $this->createAgent($credentials);
-                return response($user->only(['email', 'token']));
+                return response([
+                    "email" => $user->email,
+                    "token" => $user->token,
+                    "role" => $user->role->name
+                ]);
                 break;
 
             default:
@@ -130,25 +146,28 @@ class AuthController extends Controller
 
         try {
 
-            $user = User::create([
-                'phone' => $credentials['phone'],
-                'email' => $credentials['email'],
-                'password' => bcrypt($credentials['password']),
-                'national_id' => $credentials['nationalId']
-            ]);
+            $user = new User();
+            $user->phone = $credentials['phone'];
+            $user->email = $credentials['email'];
+            $user->password = $credentials['password'];
+            $user->verified = 1;
+            $user->role()->associate((Role::where('name', $credentials['role'])->first()));
+            Log::info("Save Student ");
+            $user->save();
 
-            $userDetail = new UserDetail();
-            $userDetail->firstname = $credentials['firstName'];
-            $userDetail->middlename = in_array('middleName', $credentials) ? $credentials['middleName'] : null;
-            $userDetail->lastname = $credentials['lastName'];
-            $userDetail->dob = $credentials['dob'];
-            $userDetail->gender = $credentials['gender'];
+            $studentDetail = new StudentDetail();
+            $studentDetail->firstname = $credentials['firstName'];
+            $studentDetail->middlename = in_array('middleName', $credentials) ? $credentials['middleName'] : null;
+            $studentDetail->lastname = $credentials['lastName'];
+            $studentDetail->dob = $credentials['dob'];
+            $studentDetail->gender = $credentials['gender'];
+            $studentDetail->national_id = $credentials['nationalId'];
 
-            $user->userDetails()->save($userDetail);
+            Log::info("Save Student details ");
+            $user->studentDetails()->save($studentDetail);
 
             $user['token'] = $this->tokenFromUser($user['id']);
 
-            $user->roles()->attach(Role::where('name', $credentials['role'])->first());
 
             DB::commit();
             return $user;
@@ -165,32 +184,31 @@ class AuthController extends Controller
     {
         DB::beginTransaction();
         try {
-            $user = User::create([
-                'phone' => $credentials['phone'],
-                'email' => $credentials['email'],
-                'password' => bcrypt($credentials['password']),
-                'national_id' => $credentials['nationalId']
-            ]);
+            $user = new User();
+            $user->phone = $credentials['phone'];
+            $user->email = $credentials['email'];
+            $user->password = $credentials['password'];
+            $user->verified = 1;
+            $user->role()->associate((Role::where('name', $credentials['role'])->first()));
 
-            $userDetail = new UserDetail();
-            $userDetail->agent_name = $credentials['agentName'];
-            $userDetail->location = $credentials['location'];
-            $userDetail->legal_registration_number = $credentials['legalRegistrationNumber'];
+            Log::info("Save Agent ");
+            $user->save();
 
-            $user->userDetails()->save($userDetail);
+            $agentDetails = new AgentDetail();
+            $agentDetails->name = $credentials['agentName'];
+            $agentDetails->location = $credentials['location'];
+            $agentDetails->national_id = $credentials['nationalId'];
+            $agentDetails->legal_registration_number = $credentials['legalRegistrationNumber'];
+            $agentDetails->valid_bank_open = $credentials['validBankOpening'];
+            $agentDetails->bank_account_number = $credentials['bankAccountNumber'];
+            $agentDetails->bank_account_name = $credentials['bankAccountName'];
 
+            Log::info("Save Agent Details for agent ".$user->email);
+            $user->agentDetails()->save($agentDetails);
 
-            $bank = new BankAccount();
-            $bank -> account_number = $credentials['bankAccountNumber'];
-            $bank->account_name =  $credentials['bankAccountName'];
-            $bank ->bank_name =  $credentials['openingBank'];
-
-            $user->bankAccount()->save($bank);
 
             $user['token'] = $this->tokenFromUser($user['id']);
 
-
-            $user->roles()->attach(Role::where('name', $credentials['role'])->first());
 
             DB::commit();
             return $user;
@@ -211,13 +229,43 @@ class AuthController extends Controller
         // grab credentials from the request
         $credentials = $request->only('email', 'password');
 
-        if (auth()->attempt($credentials)) {
-            $result['token'] = auth()->issue();
-            $result['email'] = $credentials['email'];
-            return response($result);
+        $validator = Validator::make($credentials, [
+            'email' => 'required|email',
+            'password' => 'required|min:6'
+        ]);
+
+        if ($validator->fails()) {
+            return response([
+                'success' => false,
+                'message' => $validator->messages(),
+                'status_code' => 400
+            ]);;
         }
 
-        return response(['Invalid Credentials']);
+        if (auth()->attempt($credentials)) {
+
+            $currentUser = Auth::user();
+
+            if ($currentUser->verified) {
+
+                $result['verified'] = $currentUser->verified ? true : false;
+                $result['token'] = auth()->issue();
+                $result['email'] = $currentUser->email;
+                $result['role'] = $currentUser->role->name;
+
+                return response($result);
+            } else {
+                auth()->logout();
+            }
+        }
+
+
+        return response([
+            'success' => false,
+            'message' => "Invalid Credentials",
+            'status_code' => 403
+        ]);
+
     }
 
     public function tokenFromUser($id)
@@ -371,4 +419,6 @@ class AuthController extends Controller
 
         return response()->json(["users" => User::all()]);
     }
+
+
 }

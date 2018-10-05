@@ -10,6 +10,13 @@ class User extends Authenticatable
     use Notifiable;
 
     /**
+     * The table associated with the model.
+     *
+     * @var string
+     */
+    protected $table = 'login_users_c';
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array
@@ -27,9 +34,9 @@ class User extends Authenticatable
         'password', 'remember_token',
     ];
 
-    public function roles()
+    public function role()
     {
-        return $this->belongsToMany('App\Role');
+        return $this->belongsTo('App\Role','role_id');
     }
 
 
@@ -51,20 +58,26 @@ class User extends Authenticatable
 
     public function hasRole($role)
     {
-        if ($this->roles()->where('name', $role)->first()) {
+        if ($this->role()->where('name', $role)->first()) {
             return true;
         }
 
         return false;
     }
 
-    public function userDetails()
+    public function studentDetails()
     {
-        return $this->hasOne('App\UserDetail');
+        return $this->hasOne('App\StudentDetail');
     }
 
-    public function bankAccount()
+    public function agentDetails()
     {
-        return $this->hasOne('App\BankAccount');
+        return $this->hasOne('App\AgentDetail');
     }
+
+    public function councilorDetails()
+    {
+        return $this->hasOne('App\CouncilorDetail');
+    }
+
 }

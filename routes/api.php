@@ -26,38 +26,45 @@ use Illuminate\Http\Request;
 Route::post('/register', [
     'uses' => 'AuthController@register',
     'as' => 'register',
-    'middleware'=>'api'
+    'middleware' => 'api'
 ]);
 
 
 Route::post('/login', [
     'uses' => 'AuthController@login',
     'as' => 'register',
-    'middleware'=>'api'
+    'middleware' => 'api'
 ]);
 
 Route::post('/password-reset-email', [
     'uses' => 'AuthController@passwordResetEmail',
     'as' => 'password-reset-email',
-    'middleware'=>'api'
+    'middleware' => 'api'
 ]);
 
 Route::post('/reset-password', [
     'uses' => 'AuthController@resetPassword',
     'as' => 'reset-password',
-    'middleware'=>'api'
+    'middleware' => 'api'
 ]);
 
 Route::post('/show', [
     'uses' => 'AuthController@show',
     'as' => 'show',
-    'middleware'=>['api','roles'],
-    'role'=>'student'
+    'middleware' => ['api', 'roles'],
+    'role' => 'student'
 ]);
 
 Route::post('/details', [
     'uses' => 'AuthController@details',
     'as' => 'details',
-    'middleware'=>['api','roles'],
-    'role'=>['student','agent']
+    'middleware' => ['api', 'roles'],
+    'role' => ['student', 'agent']
+]);
+
+
+Route::post('/user/{id}', [
+    'uses' => 'UserController@showProfile',
+    'middleware' => ['api', 'roles'],
+    'role' => 'student'
 ]);

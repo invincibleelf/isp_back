@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateUserDetailsTable extends Migration
+class CreateAgentDetailsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,18 +13,16 @@ class CreateUserDetailsTable extends Migration
      */
     public function up()
     {
-        Schema::create('user_details', function (Blueprint $table) {
+        Schema::create('agent_details', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('user_id');
-            $table->string('firstname',255)->nullable();
-            $table->string('middlename',255)->nullable();
-            $table->string('lastname',255)->nullable();
-            $table->date('dob')->nullable();
-            $table->string('gender')->nullable();
-
-            $table->string('agent_name',255)->nullable();
+            $table->string('name',255);
+            $table->string('location');
+            $table->string('national_id')->unique();
             $table->string('legal_registration_number')->nullable();
-            $table->string('location')->nullable();
+            $table->string('valid_bank_open');
+            $table->integer('bank_account_number');
+            $table->string('bank_account_name');
             $table->timestamps();
         });
     }
@@ -36,6 +34,6 @@ class CreateUserDetailsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('user_details');
+        Schema::dropIfExists('agent_details');
     }
 }
