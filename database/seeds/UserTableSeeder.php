@@ -39,6 +39,7 @@ class UserTableSeeder extends Seeder
         $agentDetail->valid_bank_open = "anz";
         $agentDetail->bank_account_number = "0939393";
         $agentDetail->bank_account_name = "John Agent";
+        $agentDetail->status = 0;
 
         $agent->agentDetails()->save($agentDetail);
 
@@ -57,6 +58,7 @@ class UserTableSeeder extends Seeder
         $councilorDetail->firstname = 'John Councilor';
         $councilorDetail->lastname = 'Doe';
         $councilorDetail->national_id = "483838838";
+        $councilorDetail->status = 0;
         $councilorDetail->agent()->associate($agentDetail);
 
         $councilor->councilorDetails()->save($councilorDetail);

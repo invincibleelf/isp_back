@@ -23,6 +23,7 @@ class CreateAgentDetailsTable extends Migration
             $table->string('valid_bank_open');
             $table->integer('bank_account_number');
             $table->string('bank_account_name');
+            $table->integer('status');
             $table->timestamps();
         });
     }

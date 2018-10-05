@@ -150,7 +150,7 @@ class AuthController extends Controller
             $user->phone = $credentials['phone'];
             $user->email = $credentials['email'];
             $user->password = $credentials['password'];
-            $user->verified = 1;
+            $user->verified = true;
             $user->role()->associate((Role::where('name', $credentials['role'])->first()));
             Log::info("Save Student ");
             $user->save();
@@ -188,7 +188,7 @@ class AuthController extends Controller
             $user->phone = $credentials['phone'];
             $user->email = $credentials['email'];
             $user->password = $credentials['password'];
-            $user->verified = 1;
+            $user->verified = false;
             $user->role()->associate((Role::where('name', $credentials['role'])->first()));
 
             Log::info("Save Agent ");
@@ -202,6 +202,9 @@ class AuthController extends Controller
             $agentDetails->valid_bank_open = $credentials['validBankOpening'];
             $agentDetails->bank_account_number = $credentials['bankAccountNumber'];
             $agentDetails->bank_account_name = $credentials['bankAccountName'];
+
+            //Default Status value
+            $agentDetails->status = 0;
 
             Log::info("Save Agent Details for agent ".$user->email);
             $user->agentDetails()->save($agentDetails);
