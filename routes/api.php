@@ -22,6 +22,11 @@ use Illuminate\Http\Request;
 //  Route::get('/test', 'APIControllers\AuthController@test');
 //});
 
+/***
+ *
+ * Routes for User Login and egistration
+ *
+ */
 
 Route::post('/register', [
     'uses' => 'AuthController@register',
@@ -48,6 +53,13 @@ Route::post('/reset-password', [
     'middleware' => 'api'
 ]);
 
+Route::post('/createCouncilor', [
+    'uses' => 'AuthController@createCouncilor',
+    'middleware' => ['api', 'roles'],
+    'role' => "agent"
+]);
+
+
 Route::post('/show', [
     'uses' => 'AuthController@show',
     'as' => 'show',
@@ -63,10 +75,16 @@ Route::post('/details', [
 ]);
 
 
-//Route::post('/user/{id}', [
-//    'uses' => 'UserController@showProfile',
+/***
+ *
+ * Routes for getting User Information
+ *
+ */
+
+//Route::get('/user/{id}', [
+//    'uses' => 'UserController@getUser',
 //    'middleware' => ['api', 'roles'],
-//    'role' => 'student'
+//   'role' => 'student'
 //]);
 
 Route::get('/showProfile', [
@@ -74,3 +92,6 @@ Route::get('/showProfile', [
     'middleware' => ['api', 'roles'],
     'role' => ['student', 'agent', 'councilor']
 ]);
+
+
+

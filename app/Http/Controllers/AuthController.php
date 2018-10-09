@@ -14,6 +14,7 @@ use App\SendMailable;
 use App\StudentDetail;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Support\Facades\Log;
+use League\Flysystem\Config;
 use Mail;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -24,6 +25,7 @@ use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Support\Facades\DB;
 use Psy\Util\Json;
+use GuzzleHttp\Client;
 
 
 class AuthController extends Controller
@@ -83,6 +85,21 @@ class AuthController extends Controller
                         'status_code' => 400
                     ]);
                 }
+
+
+//                TODO Implement while calling BUX API
+//                Log::info("Create Student ".$credentials["email"]."in BUX API ".\Illuminate\Support\Facades\Config::get('constants.bux_base_url'));
+//
+//                $buxAPI = new Client([
+//                    'base_uri'=>\Illuminate\Support\Facades\Config::get('constants.bux_base_url'),
+//                    'timeout'=>2.0
+//                ]);
+//
+//
+//                $buxResponse = $buxAPI->get(\Illuminate\Support\Facades\Config::get('constants.bux_base_url')."showProfile");
+//
+//                return response(["s"=>$buxResponse]);
+
 
                 Log::info("Create Student");
                 $user = $this->createStudent($credentials);
@@ -417,6 +434,86 @@ class AuthController extends Controller
     {
 
         return response()->json(["users" => User::all()]);
+    }
+
+    public function createCouncilor(Request $request)
+    {
+
+        Log::info("Initlaize Councilor Registration with email : " . $request['email']);
+
+        $fields = ['firstName', 'lastName', 'middleName', 'email', 'password', 'confirmPassword', 'phone', 'nationalId'];
+
+        // grab credentials from the request
+        $credentials = $request->only($fields);
+
+        $validator = Validator::make(
+            $credentials, [
+                'firstName' => 'required|max:255',
+                'lastName' => 'required|max:255',
+                'middleName => max:255',
+                'phone' => 'required',
+                'email' => 'required|email|max:255|unique:login_users_c',
+                'nationalId' => 'required|unique:councilor_details,national_id',
+                'password' => 'required|min:6',
+                'confirmPassword' => 'required_with:password|same:password'
+            ]
+        );
+
+        if ($validator->fails()) {
+            return response([
+                'success' => false,
+                'message' => $validator->messages(),
+                'status_code' => 400
+            ]);
+        }
+
+        Log::info("Create Student with email" . $credentials['email']);
+
+        DB::beginTransaction();
+
+        try {
+
+            $councilor = new User();
+            $councilor->phone = $credentials['phone'];
+            $councilor->email = $credentials['email'];
+            $councilor->password = $credentials['password'];
+            $councilor->verified = true;
+            $councilor->role()->associate((Role::where('name', 'councilor')->first()));
+            Log::info("Save Councilor ");
+            $councilor->save();
+
+
+            $councilorDetail = new CouncilorDetail();
+            $councilorDetail->firstname = $credentials['firstName'];
+            $councilorDetail->middlename = in_array('middleName', $credentials) ? $credentials['middleName'] : null;
+            $councilorDetail->lastname = $credentials['lastName'];
+            $councilorDetail->national_id = $credentials['nationalId'];
+            $councilorDetail->status = 0;
+
+            $councilorDetail->agent()->associate(Auth::user()->agentDetails);
+
+
+            Log::info("Save Councilor Details ");
+            $councilor->councilorDetails()->save($councilorDetail);
+            DB::commit();
+            return response([
+                "success" => true,
+                "status-code" => 500,
+                "councilor" => $councilor
+            ]);
+
+        } catch (Exception $e) {
+            //Roll back database if error
+            DB::rollback();
+            return response()->json(['error' => $e->getMessage()], 500);
+        };
+
+        return response([
+            'success' => false,
+            'message' => "Error",
+            'status_code' => 400
+        ]);
+
     }
 
 
