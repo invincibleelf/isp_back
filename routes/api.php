@@ -63,8 +63,14 @@ Route::post('/details', [
 ]);
 
 
-Route::post('/user/{id}', [
+//Route::post('/user/{id}', [
+//    'uses' => 'UserController@showProfile',
+//    'middleware' => ['api', 'roles'],
+//    'role' => 'student'
+//]);
+
+Route::get('/showProfile', [
     'uses' => 'UserController@showProfile',
     'middleware' => ['api', 'roles'],
-    'role' => 'student'
+    'role' => ['student', 'agent', 'councilor']
 ]);

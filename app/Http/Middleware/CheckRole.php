@@ -16,7 +16,11 @@ class CheckRole
     public function handle($request, Closure $next)
     {
         if ($request->user() === null) {
-            return response("insufficient Credentials", 401);
+            return response([
+                'success' => false,
+                'message' => "Invalid User Details",
+                'status_code' => 403
+            ]);
         }
 
 
@@ -30,6 +34,10 @@ class CheckRole
             return $next($request);
         }
 
-        return response("insufficient Credentials", 401);
+        return response([
+            'success' => false,
+            'message' => "Unauthorized Access",
+            'status_code' => 403
+        ]);
     }
 }

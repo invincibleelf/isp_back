@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\CouncilorDetail;
 use App\AgentDetail;
 
+use App\Http\Resources\LoginResource;
 use App\Http\Resources\UserResource;
 use App\Role;
 use App\User;
@@ -206,7 +207,7 @@ class AuthController extends Controller
             //Default Status value
             $agentDetails->status = 0;
 
-            Log::info("Save Agent Details for agent ".$user->email);
+            Log::info("Save Agent Details for agent " . $user->email);
             $user->agentDetails()->save($agentDetails);
 
 
@@ -242,7 +243,7 @@ class AuthController extends Controller
                 'success' => false,
                 'message' => $validator->messages(),
                 'status_code' => 400
-            ]);;
+            ]);
         }
 
         if (auth()->attempt($credentials)) {
@@ -251,17 +252,12 @@ class AuthController extends Controller
 
             if ($currentUser->verified) {
 
-                $result['verified'] = $currentUser->verified ? true : false;
-                $result['token'] = auth()->issue();
-                $result['email'] = $currentUser->email;
-                $result['role'] = $currentUser->role->name;
+                return new LoginResource($currentUser);
 
-                return response($result);
             } else {
                 auth()->logout();
             }
         }
-
 
         return response([
             'success' => false,
