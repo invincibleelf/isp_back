@@ -14,10 +14,28 @@ class UserResource extends JsonResource
      */
     public function toArray($request)
     {
+        $details = [];
+
+        switch($this->role->name) {
+            case "student":
+                $details = $this->studentDetails;
+                $details->load("councilor");
+                break;
+            case "councilor":
+                $details = $this->councilorDetails;
+                $details->load("agent");
+                break;
+            case "agent":
+                $details = $this->agentDetails;
+                $councilors  = $this->councilolrs;
+
+
+        }
         return [
-            "role"=>$this->role,
-            "userDetails"=>$this->userDetails
+            "userDetails"=>$details
         ];
+
+
         //TODO Manage Return parameter according to the need from cient
     }
 }
