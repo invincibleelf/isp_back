@@ -104,6 +104,8 @@ class AuthController extends Controller
                 Log::info("Create Student");
                 $user = $this->createStudent($credentials);
                 return response([
+                    "success"=>true,
+                    "status_code"=>500,
                     "email" => $user->email,
                     "token" => $user->token,
                     "role" => $user->role->name
@@ -139,6 +141,8 @@ class AuthController extends Controller
 
                 $user = $this->createAgent($credentials);
                 return response([
+                    "success"=>true,
+                    "status_code"=>500,
                     "email" => $user->email,
                     "token" => $user->token,
                     "role" => $user->role->name
@@ -495,6 +499,7 @@ class AuthController extends Controller
 
             Log::info("Save Councilor Details ");
             $councilor->councilorDetails()->save($councilorDetail);
+
             DB::commit();
             return response([
                 "success" => true,
