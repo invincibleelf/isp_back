@@ -21,7 +21,7 @@ class LoginResource extends JsonResource
 
 
         return [
-            "status_code" => 500,
+            "status_code" => 200,
             "success" => true,
             "token" => auth()->issue(),
             "role" => $this->role->name,

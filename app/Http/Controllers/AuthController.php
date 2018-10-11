@@ -50,7 +50,7 @@ class AuthController extends Controller
             return response([
                 'success' => false,
                 'message' => "Invalid role for registration",
-                'status_code' => 400
+                'status_code' => 403
             ]);
         }
 
@@ -105,7 +105,7 @@ class AuthController extends Controller
                 $user = $this->createStudent($credentials);
                 return response([
                     "success"=>true,
-                    "status_code"=>500,
+                    "status_code"=>200,
                     "email" => $user->email,
                     "token" => $user->token,
                     "role" => $user->role->name
@@ -142,7 +142,7 @@ class AuthController extends Controller
                 $user = $this->createAgent($credentials);
                 return response([
                     "success"=>true,
-                    "status_code"=>500,
+                    "status_code"=>200,
                     "email" => $user->email,
                     "token" => $user->token,
                     "role" => $user->role->name
@@ -153,7 +153,7 @@ class AuthController extends Controller
                 return response([
                     'success' => false,
                     'message' => "Invalid role for registration",
-                    'status_code' => 400
+                    'status_code' => 403
                 ]);
                 break;
         }
@@ -249,6 +249,7 @@ class AuthController extends Controller
 
     protected function login(Request $request)
     {
+        Log::info("Request is ".$request);
 
         auth()->shouldUse('api');
         // grab credentials from the request
@@ -503,7 +504,7 @@ class AuthController extends Controller
             DB::commit();
             return response([
                 "success" => true,
-                "status-code" => 500,
+                "status-code" => 200,
                 "councilor" => $councilor
             ]);
 

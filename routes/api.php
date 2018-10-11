@@ -77,21 +77,48 @@ Route::post('/details', [
 
 /***
  *
- * Routes for getting User Information
+ * Routes for getting and updating Current Logged User
  *
  */
 
-//Route::get('/user/{id}', [
-//    'uses' => 'UserController@getUser',
-//    'middleware' => ['api', 'roles'],
-//   'role' => 'student'
-//]);
 
 Route::get('/showProfile', [
     'uses' => 'UserController@showProfile',
     'middleware' => ['api', 'roles'],
     'role' => ['student', 'agent', 'councilor']
 ]);
+
+Route::put('/updateProfile',[
+    'uses' => 'UserController@updateProfile',
+    'middleware' => ['api', 'roles'],
+    'role' => ['student','agent', 'councilor']
+]);
+
+
+
+/***
+ *
+ * Routes for getting and updating Student Information
+ *
+ */
+Route::get('/users/students', [
+    'uses' => 'UserController@getStudents',
+    'middleware' => ['api', 'roles'],
+    'role' => ['agent', 'councilor']
+]);
+
+Route::get('/users/student/{id}', [
+    'uses' => 'UserController@getStudent',
+    'middleware' => ['api', 'roles'],
+    'role' => ['agent', 'councilor']
+]);
+
+Route::put('/users/student',[
+    'uses' => 'UserController@updateStudent',
+    'middleware' => ['api', 'roles'],
+    'role' => ['agent', 'councilor']
+]);
+
 
 
 
