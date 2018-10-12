@@ -13,8 +13,9 @@ use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
 {
-    public function showProfile()
+    public function showProfile(Request $request)
     {
+        Log::info("Request object is ".$request);
         $user = Auth::user();
 
         Log::info("Show profile for current user  " . $user->email);

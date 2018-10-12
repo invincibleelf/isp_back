@@ -79,6 +79,7 @@ class AuthController extends Controller
                     ]
                 );
                 if ($validator->fails()) {
+                    Log::error("Validation Error");
                     return response([
                         'success' => false,
                         'message' => $validator->messages(),
@@ -132,6 +133,7 @@ class AuthController extends Controller
                     ]
                 );
                 if ($validator->fails()) {
+                    Log::error("Validation Error");
                     return response([
                         'success' => false,
                         'message' => $validator->messages(),
@@ -139,6 +141,7 @@ class AuthController extends Controller
                     ]);
                 }
 
+                Log::info("Create Agent");
                 $user = $this->createAgent($credentials);
                 return response([
                     "success"=>true,
@@ -150,6 +153,7 @@ class AuthController extends Controller
                 break;
 
             default:
+                Log::error("Invalid Role for registration");
                 return response([
                     'success' => false,
                     'message' => "Invalid role for registration",
@@ -196,6 +200,7 @@ class AuthController extends Controller
 
         } catch (Exception $e) {
             //Roll back database if error
+            Log::error("Error while saving to database".$e->getMessage());
             DB::rollback();
             return response()->json(['error' => $e->getMessage()], 500);
         };
@@ -240,6 +245,7 @@ class AuthController extends Controller
 
         } catch (Exception $e) {
             //Roll back database if error
+            Log::error("Error while saving to database".$e->getMessage());
             DB::rollback();
             return response()->json(['error' => $e->getMessage()], 500);
         }
@@ -261,6 +267,7 @@ class AuthController extends Controller
         ]);
 
         if ($validator->fails()) {
+            Log::error("Validation Error");
             return response([
                 'success' => false,
                 'message' => $validator->messages(),
@@ -321,6 +328,7 @@ class AuthController extends Controller
             ]
         );
         if ($validator->fails()) {
+            Log::error("Validation Error");
             return response([
                 'success' => false,
                 'message' => $validator->messages(),
@@ -443,6 +451,7 @@ class AuthController extends Controller
 
     public function createCouncilor(Request $request)
     {
+        Log::info("Request object is ".$request);
 
         Log::info("Initlaize Councilor Registration with email : " . $request['email']);
 
@@ -465,6 +474,7 @@ class AuthController extends Controller
         );
 
         if ($validator->fails()) {
+            Log::error("Validation Error");
             return response([
                 'success' => false,
                 'message' => $validator->messages(),
@@ -472,7 +482,7 @@ class AuthController extends Controller
             ]);
         }
 
-        Log::info("Create Student with email" . $credentials['email']);
+        Log::info("Create Councilor with email" . $credentials['email']);
 
         DB::beginTransaction();
 
@@ -510,15 +520,11 @@ class AuthController extends Controller
 
         } catch (Exception $e) {
             //Roll back database if error
+            Log::error("Error while saving to databse".$e->getMessage());
             DB::rollback();
             return response()->json(['error' => $e->getMessage()], 500);
-        };
+        }
 
-        return response([
-            'success' => false,
-            'message' => "Error",
-            'status_code' => 400
-        ]);
 
     }
 
