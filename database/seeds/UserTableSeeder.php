@@ -36,15 +36,13 @@ class UserTableSeeder extends Seeder
         $agentDetail->national_id = "323232323";
         $agentDetail->legal_registration_number = "738273823782";
         $agentDetail->location = "2/22 Elizabeth st, Melbourne VIC 3000";
-        $agentDetail->valid_bank_open = "anz";
+        $agentDetail->valid_bank_opening = "anz";
         $agentDetail->bank_account_number = "0939393";
         $agentDetail->bank_account_name = "John Agent";
         $agentDetail->status = 0;
 
         $agent->agentDetails()->save($agentDetail);
 
-
-        //TODO For Councilor
 
         $councilor = new User();
         $councilor->phone = '042292929';
@@ -79,23 +77,12 @@ class UserTableSeeder extends Seeder
         $studentDetail->dob = date('m.d.y');
         $studentDetail->gender = "Male";
         $studentDetail->national_id = "2323232323";
+        $studentDetail->student_id_number = "12345678";
         $studentDetail->councilor()->associate($councilorDetail);
 
 
         $student->studentDetails()->save($studentDetail);
 
 
-//
-//        $councilor = new User();
-//        $councilor->firstname ='John Councilor';
-//        $councilor->lastname ='Doe';
-//        $councilor->dob=date('m.d.y');
-//        $councilor->gender= "Male";
-//        $councilor->phone='042292929';
-//        $councilor->national_id='465445453434';
-//        $councilor->email = 'councilor@example.com';
-//        $councilor->password = bcrypt('123456');
-//        $councilor->save();
-//        $councilor->roles()->attach($role_councilor);
     }
 }

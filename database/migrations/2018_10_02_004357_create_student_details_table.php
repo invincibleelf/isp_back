@@ -20,8 +20,9 @@ class CreateStudentDetailsTable extends Migration
             $table->string('middlename', 255)->nullable();
             $table->string('lastname', 255);
             $table->date('dob');
-            $table->string('gender');
+            $table->string('gender')->nullable();
             $table->string('national_id')->unique();
+            $table->string('student_id_number');
             $table->integer('councilor_id')->nullable();
             $table->timestamps();
         });

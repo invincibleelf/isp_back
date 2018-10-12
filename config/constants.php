@@ -1,6 +1,8 @@
 <?php
 return [
 
-    'bux_base_url' => 'http://60.242.47.187:3380/ISP_SERVER/public/api/'
+    'bux_base_url' => 'http://preprod.isp.api.bux.com/',
+    'bux_create_student'=>'users/student/',
+    'bux_list_students'=>'users/students'
 ];
 ?>

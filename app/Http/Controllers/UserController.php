@@ -6,6 +6,7 @@ use App\Http\Resources\UserResource;
 
 
 use App\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -63,6 +64,7 @@ class UserController extends Controller
                 $currentUser->phone = $credentials['phone'];
 
                 $currentUser->save();
+                DB::commit();
                 break;
 
             case 'councilor':
@@ -126,9 +128,10 @@ class UserController extends Controller
                 $currentUser->agentDetails->legal_registration_number = $credentials['legalRegistrationNumber'];
                 $currentUser->agentDetails->bank_account_number = $credentials['bankAccountNumber'];
                 $currentUser->agentDetails->bank_account_name = $credentials['bankAccountName'];
-                $currentUser->agentDetails->valid_bank_opening = $credentials['validBankOpening'];
+                $currentUser->agentDetails->valid_bank_open = $credentials['validBankOpening'];
 
                 $currentUser->save();
+                $currentUser->agentDetails->save();
 
 
                 break;

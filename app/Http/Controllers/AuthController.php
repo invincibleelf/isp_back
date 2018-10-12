@@ -4,17 +4,17 @@ namespace App\Http\Controllers;
 
 use App\CouncilorDetail;
 use App\AgentDetail;
-
 use App\Http\Resources\LoginResource;
-use App\Http\Resources\UserResource;
 use App\Role;
 use App\User;
 use App\PasswordResets;
 use App\SendMailable;
 use App\StudentDetail;
-use Illuminate\Auth\Events\Login;
+use App\Utilities;
+
+use http\Exception;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\Log;
-use League\Flysystem\Config;
 use Mail;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -26,6 +26,7 @@ use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Support\Facades\DB;
 use Psy\Util\Json;
 use GuzzleHttp\Client;
+use Illuminate\Support\Facades\Config;
 
 
 class AuthController extends Controller
@@ -57,10 +58,10 @@ class AuthController extends Controller
 
         switch ($role->name) {
             case "student":
-                $fields = ['firstName', 'lastName', 'middleName', 'dob', 'email', 'gender', 'password', 'confirmPassword', 'phone', 'nationalId', 'role'];
+
+                $fields = ['firstName', 'lastName', 'middleName', 'dob', 'email', 'gender', 'password', 'confirmPassword', 'phone', 'nationalId', 'role', 'studentIdNumber'];
                 // grab credentials from the request
                 $credentials = $request->only($fields);
-
 
                 $validator = Validator::make(
                     $credentials,
@@ -75,7 +76,8 @@ class AuthController extends Controller
                         'nationalId' => 'required|unique:student_details,national_id',
                         'password' => 'required|min:6',
                         'confirmPassword' => 'required_with:password|same:password',
-                        'role' => 'required'
+                        'role' => 'required',
+                        'studentIdNumber' => 'required'
                     ]
                 );
                 if ($validator->fails()) {
@@ -87,26 +89,26 @@ class AuthController extends Controller
                     ]);
                 }
 
-
-//                TODO Implement while calling BUX API
-//                Log::info("Create Student ".$credentials["email"]."in BUX API ".\Illuminate\Support\Facades\Config::get('constants.bux_base_url'));
-//
-//                $buxAPI = new Client([
-//                    'base_uri'=>\Illuminate\Support\Facades\Config::get('constants.bux_base_url'),
-//                    'timeout'=>2.0
-//                ]);
-//
-//
-//                $buxResponse = $buxAPI->get(\Illuminate\Support\Facades\Config::get('constants.bux_base_url')."showProfile");
-//
-//                return response(["s"=>$buxResponse]);
-
-
                 Log::info("Create Student");
-                $user = $this->createStudent($credentials);
+
+                try {
+                    DB::beginTransaction();
+                    $user = $this->createStudent($credentials);
+
+                    if ($user === null) {
+                        throw new \Exception("Cannot save student to bux application", '0');
+                    }
+                } catch (\Exception $e) {
+                    //Roll back database if error
+                    Log::error("Error while saving to database" . $e->getMessage());
+                    DB::rollback();
+                    return response()->json(['error' => $e->getMessage()], 500);
+                }
+
+
                 return response([
-                    "success"=>true,
-                    "status_code"=>200,
+                    "success" => true,
+                    "status_code" => 200,
                     "email" => $user->email,
                     "token" => $user->token,
                     "role" => $user->role->name
@@ -142,10 +144,22 @@ class AuthController extends Controller
                 }
 
                 Log::info("Create Agent");
-                $user = $this->createAgent($credentials);
+
+                try {
+                    DB::beginTransaction();
+                    $user = $this->createAgent($credentials);
+
+                } catch (\Exception $e) {
+                    //Roll back database if error
+                    Log::error("Error while saving to database" . $e->getMessage());
+                    DB::rollback();
+                    return response()->json(['error' => $e->getMessage()], 500);
+                }
+
+
                 return response([
-                    "success"=>true,
-                    "status_code"=>200,
+                    "success" => true,
+                    "status_code" => 200,
                     "email" => $user->email,
                     "token" => $user->token,
                     "role" => $user->role->name
@@ -168,365 +182,371 @@ class AuthController extends Controller
 
     protected function createStudent($credentials)
     {
-        DB::beginTransaction();
 
-        try {
+        $user = new User();
+        $user->phone = $credentials['phone'];
+        $user->email = $credentials['email'];
+        $user->password = bcrypt($credentials['password']);
+        $user->verified = true;
+        $user->role()->associate((Role::where('name', $credentials['role'])->first()));
+        Log::info("Save Student ");
+        $user->save();
 
-            $user = new User();
-            $user->phone = $credentials['phone'];
-            $user->email = $credentials['email'];
-            $user->password = $credentials['password'];
-            $user->verified = true;
-            $user->role()->associate((Role::where('name', $credentials['role'])->first()));
-            Log::info("Save Student ");
-            $user->save();
+        $studentDetail = new StudentDetail();
+        $studentDetail->firstname = $credentials['firstName'];
+        $studentDetail->middlename = array_key_exists('middleName', $credentials) ? $credentials['middleName'] : null;
+        $studentDetail->lastname = $credentials['lastName'];
+        $studentDetail->dob = $credentials['dob'];
+        $studentDetail->gender = array_key_exists("gender", $credentials) ? $credentials['gender'] : null;
+        $studentDetail->national_id = $credentials['nationalId'];
+        $studentDetail->student_id_number = $credentials['studentIdNumber'];
 
-            $studentDetail = new StudentDetail();
-            $studentDetail->firstname = $credentials['firstName'];
-            $studentDetail->middlename = in_array('middleName', $credentials) ? $credentials['middleName'] : null;
-            $studentDetail->lastname = $credentials['lastName'];
-            $studentDetail->dob = $credentials['dob'];
-            $studentDetail->gender = $credentials['gender'];
-            $studentDetail->national_id = $credentials['nationalId'];
+        Log::info("Save Student details ");
+        $user->studentDetails()->save($studentDetail);
 
-            Log::info("Save Student details ");
-            $user->studentDetails()->save($studentDetail);
-
-            $user['token'] = $this->tokenFromUser($user['id']);
+        $user['token'] = $this->tokenFromUser($user['id']);
 
 
-            DB::commit();
-            return $user;
+        Log::info("Create Student " . $credentials["email"] . "in BUX API " . Config::get('constants.bux_base_url'));
 
-        } catch (Exception $e) {
-            //Roll back database if error
-            Log::error("Error while saving to database".$e->getMessage());
-            DB::rollback();
-            return response()->json(['error' => $e->getMessage()], 500);
-        };
+        $buxAPI = new Client([
+            'base_uri' => Config::get('constants.bux_base_url'),
+            'timeout' => 2.0
+        ]);
+
+        Log::info("Request to Bux API");
+        $buxResponse = $buxAPI->post(Config::get('constants.bux_base_url') . 'users/student', ['json' => Utilities::getJsonRequestForUpdateStudent($user)]);
+        //Get body of the response in JSON (Must use decode because of the bug )
+        $contents = json_decode($buxResponse->getBody());
+
+        if (!$contents->code) {
+            return null;
+        }
+
+        DB::commit();
+        return $user;
+
 
     }
 
     protected function createAgent($credentials)
     {
-        DB::beginTransaction();
-        try {
-            $user = new User();
-            $user->phone = $credentials['phone'];
-            $user->email = $credentials['email'];
-            $user->password = $credentials['password'];
-            $user->verified = false;
-            $user->role()->associate((Role::where('name', $credentials['role'])->first()));
+        $user = new User();
+        $user->phone = $credentials['phone'];
+        $user->email = $credentials['email'];
+        $user->password = $credentials['password'];
+        $user->verified = false;
+        $user->role()->associate((Role::where('name', $credentials['role'])->first()));
 
-            Log::info("Save Agent ");
-            $user->save();
+        Log::info("Save Agent ");
+        $user->save();
 
-            $agentDetails = new AgentDetail();
-            $agentDetails->name = $credentials['agentName'];
-            $agentDetails->location = $credentials['location'];
-            $agentDetails->national_id = $credentials['nationalId'];
-            $agentDetails->legal_registration_number = $credentials['legalRegistrationNumber'];
-            $agentDetails->valid_bank_open = $credentials['validBankOpening'];
-            $agentDetails->bank_account_number = $credentials['bankAccountNumber'];
-            $agentDetails->bank_account_name = $credentials['bankAccountName'];
+        $agentDetails = new AgentDetail();
+        $agentDetails->name = $credentials['agentName'];
+        $agentDetails->location = $credentials['location'];
+        $agentDetails->national_id = $credentials['nationalId'];
+        $agentDetails->legal_registration_number = array_key_exists('legalRegistrationNumber', $credentials) ? $credentials['legalRegistrationNumber'] : null;
+        $agentDetails->valid_bank_opening = $credentials['validBankOpening'];
+        $agentDetails->bank_account_number = $credentials['bankAccountNumber'];
+        $agentDetails->bank_account_name = $credentials['bankAccountName'];
 
-            //Default Status value
-            $agentDetails->status = 0;
+        //Default Status value
+        $agentDetails->status = 0;
 
-            Log::info("Save Agent Details for agent " . $user->email);
-            $user->agentDetails()->save($agentDetails);
+        Log::info("Save Agent Details for agent " . $user->email);
+        $user->agentDetails()->save($agentDetails);
 
 
-            $user['token'] = $this->tokenFromUser($user['id']);
+        $user['token'] = $this->tokenFromUser($user['id']);
 
 
-            DB::commit();
-            return $user;
+        DB::commit();
+        return $user;
 
-        } catch (Exception $e) {
-            //Roll back database if error
-            Log::error("Error while saving to database".$e->getMessage());
-            DB::rollback();
-            return response()->json(['error' => $e->getMessage()], 500);
-        }
-
-    }
+}
 
 
-    protected function login(Request $request)
-    {
-        Log::info("Request is ".$request);
+protected
+function login(Request $request)
+{
+    Log::info("Request is " . $request);
 
-        auth()->shouldUse('api');
-        // grab credentials from the request
-        $credentials = $request->only('email', 'password');
+    auth()->shouldUse('api');
+    // grab credentials from the request
+    $credentials = $request->only('email', 'password');
 
-        $validator = Validator::make($credentials, [
-            'email' => 'required|email',
-            'password' => 'required|min:6'
-        ]);
+    $validator = Validator::make($credentials, [
+        'email' => 'required|email',
+        'password' => 'required|min:6'
+    ]);
 
-        if ($validator->fails()) {
-            Log::error("Validation Error");
-            return response([
-                'success' => false,
-                'message' => $validator->messages(),
-                'status_code' => 400
-            ]);
-        }
-
-        if (auth()->attempt($credentials)) {
-
-            $currentUser = Auth::user();
-
-            if ($currentUser->verified) {
-
-                return new LoginResource($currentUser);
-
-            } else {
-                auth()->logout();
-            }
-        }
-
+    if ($validator->fails()) {
+        Log::error("Validation Error");
         return response([
             'success' => false,
-            'message' => "Invalid Credentials",
-            'status_code' => 403
+            'message' => $validator->messages(),
+            'status_code' => 400
         ]);
-
     }
 
-    public function tokenFromUser($id)
-    {
-        // generating a token from a given user.
-        $user = User::find($id);
+    if (auth()->attempt($credentials)) {
 
-        auth()->shouldUse('api');
-        // logs in the user
-        auth()->login($user);
+        $currentUser = Auth::user();
 
-        // get and return a new token
-        $token = auth()->issue();
+        if ($currentUser->verified) {
 
-        return $token;
+            return new LoginResource($currentUser);
+
+        } else {
+            auth()->logout();
+        }
     }
 
-    public function passwordResetEmail(Request $request)
-    {
-        $fields = ['email', 'url'];
-        // grab credentials from the request
-        $credentials = $request->only($fields);
-        foreach ($fields as $field) {
-            $credentials[$field] = trim($credentials[$field]);
-        }
+    return response([
+        'success' => false,
+        'message' => "Invalid Credentials",
+        'status_code' => 403
+    ]);
 
-        $validator = Validator::make(
-            $credentials,
-            [
-                'email' => 'required|email|max:255',
-                'url' => 'required'
-            ]
-        );
-        if ($validator->fails()) {
-            Log::error("Validation Error");
-            return response([
-                'success' => false,
-                'message' => $validator->messages(),
-                'status_code' => 400
-            ]);
-        }
+}
 
-        $email = $credentials['email'];
+public
+function tokenFromUser($id)
+{
+    // generating a token from a given user.
+    $user = User::find($id);
 
-        $user = User::where('email', '=', $email)->first();
-        if (!$user) {
-            return response([
-                'success' => false,
-                'message' => 'We can not find email you provided in our database! You can register a new account with this email.',
-                'status_code' => 404
-            ]);
-        }
+    auth()->shouldUse('api');
+    // logs in the user
+    auth()->login($user);
 
-        // delete existings resets if exists
-        PasswordResets::where('email', $email)->delete();
+    // get and return a new token
+    $token = auth()->issue();
 
-        $url = $credentials['url'];
-        $token = str_random(64);
-        $result = PasswordResets::create([
-            'email' => $email,
-            'token' => $token
-        ]);
+    return $token;
+}
 
-        if ($result) {
-            Mail::to($email)->queue(new SendMailable($url, $token));
-            return response([
-                'success' => true,
-                'message' => 'The mail has been sent successfully!',
-                'status_code' => 201
-            ]);
-        }
+public
+function passwordResetEmail(Request $request)
+{
+    $fields = ['email', 'url'];
+    // grab credentials from the request
+    $credentials = $request->only($fields);
+    foreach ($fields as $field) {
+        $credentials[$field] = trim($credentials[$field]);
+    }
+
+    $validator = Validator::make(
+        $credentials,
+        [
+            'email' => 'required|email|max:255',
+            'url' => 'required'
+        ]
+    );
+    if ($validator->fails()) {
+        Log::error("Validation Error");
         return response([
             'success' => false,
-            'message' => $error,
-            'status_code' => 500
+            'message' => $validator->messages(),
+            'status_code' => 400
         ]);
     }
 
-    public function resetPassword(Request $request)
-    {
-        $fields = ['password', 'token'];
-        // grab credentials from the request
-        $credentials = $request->only($fields);
-        foreach ($fields as $field) {
-            $credentials[$field] = trim($credentials[$field]);
-        }
+    $email = $credentials['email'];
 
-        $validator = Validator::make(
-            $credentials,
-            [
-                'password' => 'required|min:6',
-                'token' => 'required'
-            ]
-        );
-        if ($validator->fails()) {
-            return response([
-                'success' => false,
-                'message' => $validator->messages(),
-                'status_code' => 400
-            ]);
-        }
-
-        $token = $credentials['token'];
-        $pr = PasswordResets::where('token', $token)->first(['email', 'created_at']);
-        $email = $pr['email'];
-        if (!$email) {
-            return response([
-                'success' => false,
-                'message' => 'Invalid reset password link!',
-                'status_code' => 404
-            ]);
-        }
-
-        $dateCreated = strtotime($pr['created_at']);
-        $expireInterval = 86400; // token expire interval in seconds (24 h)
-        $currentTime = time();
-
-        if ($currentTime - $dateCreated > $expireInterval) {
-            return response([
-                'success' => false,
-                'message' => 'The time to reset password has expired!',
-                'status_code' => 400
-            ]);
-        }
-
-        $password = bcrypt($credentials['password']);
-
-        $updatedRows = User::where('email', $email)->update(['password' => $password]);
-        if ($updatedRows > 0) {
-            PasswordResets::where('token', $token)->delete();
-            return response([
-                'success' => true,
-                'message' => 'The password has been changed successfully!',
-                'status_code' => 200
-            ]);
-        }
+    $user = User::where('email', '=', $email)->first();
+    if (!$user) {
         return response([
             'success' => false,
-            'message' => $error,
-            'status_code' => 500
+            'message' => 'We can not find email you provided in our database! You can register a new account with this email.',
+            'status_code' => 404
         ]);
     }
 
-    public function show(Request $request)
-    {
+    // delete existings resets if exists
+    PasswordResets::where('email', $email)->delete();
 
-        return response()->json(["users" => User::all()]);
+    $url = $credentials['url'];
+    $token = str_random(64);
+    $result = PasswordResets::create([
+        'email' => $email,
+        'token' => $token
+    ]);
+
+    if ($result) {
+        Mail::to($email)->queue(new SendMailable($url, $token));
+        return response([
+            'success' => true,
+            'message' => 'The mail has been sent successfully!',
+            'status_code' => 201
+        ]);
+    }
+    return response([
+        'success' => false,
+        'message' => $error,
+        'status_code' => 500
+    ]);
+}
+
+public
+function resetPassword(Request $request)
+{
+    $fields = ['password', 'token'];
+    // grab credentials from the request
+    $credentials = $request->only($fields);
+    foreach ($fields as $field) {
+        $credentials[$field] = trim($credentials[$field]);
     }
 
-    public function details(Request $request)
-    {
-
-        return response()->json(["users" => User::all()]);
+    $validator = Validator::make(
+        $credentials,
+        [
+            'password' => 'required|min:6',
+            'token' => 'required'
+        ]
+    );
+    if ($validator->fails()) {
+        return response([
+            'success' => false,
+            'message' => $validator->messages(),
+            'status_code' => 400
+        ]);
     }
 
-    public function createCouncilor(Request $request)
-    {
-        Log::info("Request object is ".$request);
-
-        Log::info("Initlaize Councilor Registration with email : " . $request['email']);
-
-        $fields = ['firstName', 'lastName', 'middleName', 'email', 'password', 'confirmPassword', 'phone', 'nationalId'];
-
-        // grab credentials from the request
-        $credentials = $request->only($fields);
-
-        $validator = Validator::make(
-            $credentials, [
-                'firstName' => 'required|max:255',
-                'lastName' => 'required|max:255',
-                'middleName => max:255',
-                'phone' => 'required',
-                'email' => 'required|email|max:255|unique:login_users_c',
-                'nationalId' => 'required|unique:councilor_details,national_id',
-                'password' => 'required|min:6',
-                'confirmPassword' => 'required_with:password|same:password'
-            ]
-        );
-
-        if ($validator->fails()) {
-            Log::error("Validation Error");
-            return response([
-                'success' => false,
-                'message' => $validator->messages(),
-                'status_code' => 400
-            ]);
-        }
-
-        Log::info("Create Councilor with email" . $credentials['email']);
-
-        DB::beginTransaction();
-
-        try {
-
-            $councilor = new User();
-            $councilor->phone = $credentials['phone'];
-            $councilor->email = $credentials['email'];
-            $councilor->password = $credentials['password'];
-            $councilor->verified = true;
-            $councilor->role()->associate((Role::where('name', 'councilor')->first()));
-            Log::info("Save Councilor ");
-            $councilor->save();
-
-
-            $councilorDetail = new CouncilorDetail();
-            $councilorDetail->firstname = $credentials['firstName'];
-            $councilorDetail->middlename = in_array('middleName', $credentials) ? $credentials['middleName'] : null;
-            $councilorDetail->lastname = $credentials['lastName'];
-            $councilorDetail->national_id = $credentials['nationalId'];
-            $councilorDetail->status = 0;
-
-            $councilorDetail->agent()->associate(Auth::user()->agentDetails);
-
-
-            Log::info("Save Councilor Details ");
-            $councilor->councilorDetails()->save($councilorDetail);
-
-            DB::commit();
-            return response([
-                "success" => true,
-                "status-code" => 200,
-                "councilor" => $councilor
-            ]);
-
-        } catch (Exception $e) {
-            //Roll back database if error
-            Log::error("Error while saving to databse".$e->getMessage());
-            DB::rollback();
-            return response()->json(['error' => $e->getMessage()], 500);
-        }
-
-
+    $token = $credentials['token'];
+    $pr = PasswordResets::where('token', $token)->first(['email', 'created_at']);
+    $email = $pr['email'];
+    if (!$email) {
+        return response([
+            'success' => false,
+            'message' => 'Invalid reset password link!',
+            'status_code' => 404
+        ]);
     }
+
+    $dateCreated = strtotime($pr['created_at']);
+    $expireInterval = 86400; // token expire interval in seconds (24 h)
+    $currentTime = time();
+
+    if ($currentTime - $dateCreated > $expireInterval) {
+        return response([
+            'success' => false,
+            'message' => 'The time to reset password has expired!',
+            'status_code' => 400
+        ]);
+    }
+
+    $password = bcrypt($credentials['password']);
+
+    $updatedRows = User::where('email', $email)->update(['password' => $password]);
+    if ($updatedRows > 0) {
+        PasswordResets::where('token', $token)->delete();
+        return response([
+            'success' => true,
+            'message' => 'The password has been changed successfully!',
+            'status_code' => 200
+        ]);
+    }
+    return response([
+        'success' => false,
+        'message' => $error,
+        'status_code' => 500
+    ]);
+}
+
+public
+function show(Request $request)
+{
+
+    return response()->json(["users" => User::all()]);
+}
+
+public
+function details(Request $request)
+{
+
+    return response()->json(["users" => User::all()]);
+}
+
+public
+function createCouncilor(Request $request)
+{
+    Log::info("Request object is " . $request);
+
+    Log::info("Initlaize Councilor Registration with email : " . $request['email']);
+
+    $fields = ['firstName', 'lastName', 'middleName', 'email', 'password', 'confirmPassword', 'phone', 'nationalId'];
+
+    // grab credentials from the request
+    $credentials = $request->only($fields);
+
+    $validator = Validator::make(
+        $credentials, [
+            'firstName' => 'required|max:255',
+            'lastName' => 'required|max:255',
+            'middleName => max:255',
+            'phone' => 'required',
+            'email' => 'required|email|max:255|unique:login_users_c',
+            'nationalId' => 'required|unique:councilor_details,national_id',
+            'password' => 'required|min:6',
+            'confirmPassword' => 'required_with:password|same:password'
+        ]
+    );
+
+    if ($validator->fails()) {
+        Log::error("Validation Error");
+        return response([
+            'success' => false,
+            'message' => $validator->messages(),
+            'status_code' => 400
+        ]);
+    }
+
+    Log::info("Create Councilor with email" . $credentials['email']);
+
+    DB::beginTransaction();
+
+    try {
+
+        $councilor = new User();
+        $councilor->phone = $credentials['phone'];
+        $councilor->email = $credentials['email'];
+        $councilor->password = $credentials['password'];
+        $councilor->verified = true;
+        $councilor->role()->associate((Role::where('name', 'councilor')->first()));
+        Log::info("Save Councilor ");
+        $councilor->save();
+
+
+        $councilorDetail = new CouncilorDetail();
+        $councilorDetail->firstname = $credentials['firstName'];
+        $councilorDetail->middlename = in_array('middleName', $credentials) ? $credentials['middleName'] : null;
+        $councilorDetail->lastname = $credentials['lastName'];
+        $councilorDetail->national_id = $credentials['nationalId'];
+        $councilorDetail->status = 0;
+
+        $councilorDetail->agent()->associate(Auth::user()->agentDetails);
+
+
+        Log::info("Save Councilor Details ");
+        $councilor->councilorDetails()->save($councilorDetail);
+
+        DB::commit();
+        return response([
+            "success" => true,
+            "status-code" => 200,
+            "councilor" => $councilor
+        ]);
+
+    } catch (\Exception $e) {
+        //Roll back database if error
+        Log::error("Error while saving to databse" . $e->getMessage());
+        DB::rollback();
+        throw $e;
+    }
+
+
+}
 
 
 }

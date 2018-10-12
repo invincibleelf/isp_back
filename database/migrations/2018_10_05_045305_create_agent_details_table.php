@@ -20,7 +20,7 @@ class CreateAgentDetailsTable extends Migration
             $table->string('location');
             $table->string('national_id')->unique();
             $table->string('legal_registration_number')->nullable();
-            $table->string('valid_bank_open');
+            $table->string('valid_bank_opening');
             $table->integer('bank_account_number');
             $table->string('bank_account_name');
             $table->integer('status');
