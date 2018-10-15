@@ -267,8 +267,7 @@ class AuthController extends Controller
     }
 
 
-    protected
-    function login(Request $request)
+    protected function login(Request $request)
     {
         Log::info("Request is " . $request);
 
@@ -311,8 +310,7 @@ class AuthController extends Controller
 
     }
 
-    public
-    function tokenFromUser($id)
+    public function tokenFromUser($id)
     {
         // generating a token from a given user.
         $user = User::find($id);
@@ -327,8 +325,7 @@ class AuthController extends Controller
         return $token;
     }
 
-    public
-    function passwordResetEmail(Request $request)
+    public function passwordResetEmail(Request $request)
     {
         $fields = ['email', 'url'];
         // grab credentials from the request
@@ -389,8 +386,7 @@ class AuthController extends Controller
         ]);
     }
 
-    public
-    function resetPassword(Request $request)
+    public function resetPassword(Request $request)
     {
         $fields = ['password', 'token'];
         // grab credentials from the request
@@ -455,22 +451,19 @@ class AuthController extends Controller
         ]);
     }
 
-    public
-    function show(Request $request)
+    public function show(Request $request)
     {
 
         return response()->json(["users" => User::all()]);
     }
 
-    public
-    function details(Request $request)
+    public function details(Request $request)
     {
 
         return response()->json(["users" => User::all()]);
     }
 
-    public
-    function createCouncilor(Request $request)
+    public function createCouncilor(Request $request)
     {
         Log::info("Request object is " . $request);
 

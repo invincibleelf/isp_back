@@ -170,22 +170,29 @@ class UserController extends Controller
 
         Log::info("Get Students for " . $currentUser->role->name . " with email " . $currentUser->email);
 
-        if ($currentUser->role->name === "councilor") {
-            $students = User::with('studentDetails')->whereHas('studentDetails.councilor', function ($q) use ($currentUser) {
-                $q->where('id', $currentUser->councilorDetails->id);
-            })->get();
-
-
-        } else if ($currentUser->role->name === "agent") {
-
-            $students = User::with('studentDetails')->whereHas('studentDetails.councilor.agent', function ($q) use ($currentUser) {
-                $q->where('id', $currentUser->agentDetails->id);
-            })->get();
-
-        }
-
+        $students = User::with('studentDetails')->whereHas('studentDetails.councilor', function ($q) use ($currentUser) {
+            $q->where('id', $currentUser->councilorDetails->id);
+        })->get();
 
         return new UserResourceCollection($students);
+
+// Code Needed id Agents allowed to view students
+//        if ($currentUser->role->name === "councilor") {
+//            $students = User::with('studentDetails')->whereHas('studentDetails.councilor', function ($q) use ($currentUser) {
+//                $q->where('id', $currentUser->councilorDetails->id);
+//            })->get();
+//
+//
+//        }
+//        else if ($currentUser->role->name === "agent") {
+//
+//            $students = User::with('studentDetails')->whereHas('studentDetails.councilor.agent', function ($q) use ($currentUser) {
+//                $q->where('id', $currentUser->agentDetails->id);
+//            })->get();
+//
+//        }
+
+
     }
 
     public function getStudent($id)
@@ -193,16 +200,21 @@ class UserController extends Controller
         $currentUser = Auth::user();
         Log::info("Get Student with id " . $id . " for " . $currentUser->role->name . " with email " . $currentUser->email);
 
-        if ($currentUser->role->name === "councilor") {
-            $student = User::with('studentDetails')->whereHas('studentDetails.councilor', function ($q) use ($currentUser) {
-                $q->where('id', $currentUser->councilorDetails->id);
-            })->find($id);
-        } else if ($currentUser->role->name === "agent") {
-            $student = User::with('studentDetails')->whereHas('studentDetails.councilor.agent', function ($q) use ($currentUser) {
-                $q->where('id', $currentUser->agentDetails->id);
+        $student = User::with('studentDetails')->whereHas('studentDetails.councilor', function ($q) use ($currentUser) {
+            $q->where('id', $currentUser->councilorDetails->id);
+        })->find($id);
 
-            })->find($id);
-        }
+// Code Needed id Agents allowed to view students
+//        if ($currentUser->role->name === "councilor") {
+//            $student = User::with('studentDetails')->whereHas('studentDetails.councilor', function ($q) use ($currentUser) {
+//                $q->where('id', $currentUser->councilorDetails->id);
+//            })->find($id);
+//        } else if ($currentUser->role->name === "agent") {
+//            $student = User::with('studentDetails')->whereHas('studentDetails.councilor.agent', function ($q) use ($currentUser) {
+//                $q->where('id', $currentUser->agentDetails->id);
+//
+//            })->find($id);
+//        }
 
         if ($student == null) {
             Log::error("Student with id " . $id . " doesn't exist for " . $currentUser->email);
@@ -223,17 +235,22 @@ class UserController extends Controller
         $currentUser = Auth::user();
         Log::info("Update student with id " . $id . " by " . $currentUser->role->name . " " . $currentUser->email);
 
-        if ($currentUser->role->name === "councilor") {
-            $student = User::with('studentDetails')->whereHas('studentDetails.councilor', function ($q) use ($currentUser) {
-                $q->where('id', $currentUser->councilorDetails->id);
-            })->find($id);
+        $student = User::with('studentDetails')->whereHas('studentDetails.councilor', function ($q) use ($currentUser) {
+            $q->where('id', $currentUser->councilorDetails->id);
+        })->find($id);
 
-        } else if ($currentUser->role->name === "agent") {
-            $student = User::with('studentDetails')->whereHas('studentDetails.councilor.agent', function ($q) use ($currentUser) {
-                $q->where('id', $currentUser->agentDetails->id);
-
-            })->find($id);
-        }
+// Code Needed if Agents are allowed to update student details
+//        if ($currentUser->role->name === "councilor") {
+//            $student = User::with('studentDetails')->whereHas('studentDetails.councilor', function ($q) use ($currentUser) {
+//                $q->where('id', $currentUser->councilorDetails->id);
+//            })->find($id);
+//
+//        } else if ($currentUser->role->name === "agent") {
+//            $student = User::with('studentDetails')->whereHas('studentDetails.councilor.agent', function ($q) use ($currentUser) {
+//                $q->where('id', $currentUser->agentDetails->id);
+//
+//            })->find($id);
+//        }
 
         if ($student == null) {
             Log::error("Student with id " . $id . " doesn't exist for " . $currentUser->role->name . " " . $currentUser->email);

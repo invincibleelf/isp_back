@@ -104,19 +104,19 @@ Route::put('/updateProfile',[
 Route::get('/users/students', [
     'uses' => 'UserController@getStudents',
     'middleware' => ['api', 'roles'],
-    'role' => ['agent', 'councilor']
+    'role' => 'councilor'
 ]);
 
 Route::get('/users/student/{id}', [
     'uses' => 'UserController@getStudent',
     'middleware' => ['api', 'roles'],
-    'role' => ['agent', 'councilor']
+    'role' => 'councilor'
 ]);
 
 Route::put('/users/student/{id}',[
     'uses' => 'UserController@updateStudent',
     'middleware' => ['api', 'roles'],
-    'role' => ['agent', 'councilor']
+    'role' => 'councilor'
 ]);
 
 Route::delete('/users/student/{id}',[
