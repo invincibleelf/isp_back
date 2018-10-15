@@ -294,7 +294,7 @@ class AuthController extends Controller
 
             $currentUser = Auth::user();
 
-            if ($currentUser->verified) {
+            if ($currentUser->verified && $currentUser->status === Config::get('enums.status.ACTIVE')) {
 
                 return new LoginResource($currentUser);
 
