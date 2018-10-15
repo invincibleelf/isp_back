@@ -113,12 +113,17 @@ Route::get('/users/student/{id}', [
     'role' => ['agent', 'councilor']
 ]);
 
-Route::put('/users/student',[
+Route::put('/users/student/{id}',[
     'uses' => 'UserController@updateStudent',
     'middleware' => ['api', 'roles'],
     'role' => ['agent', 'councilor']
 ]);
 
+Route::delete('/users/student/{id}',[
+    'uses' => 'UserController@deleteStudent',
+    'middleware' => ['api', 'roles'],
+    'role' => ['agent', 'councilor']
+]);
 
 
 
