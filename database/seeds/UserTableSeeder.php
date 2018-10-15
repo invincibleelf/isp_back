@@ -74,7 +74,7 @@ class UserTableSeeder extends Seeder
         $studentDetail = new StudentDetail();
         $studentDetail->firstname = 'John Student';
         $studentDetail->lastname = 'Doe';
-        $studentDetail->dob = date('m.d.y');
+        $studentDetail->dob = date('d.m.y');
         $studentDetail->gender = "Male";
         $studentDetail->national_id = "2323232323";
         $studentDetail->student_id_number = "12345678";

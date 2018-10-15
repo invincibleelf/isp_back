@@ -317,7 +317,7 @@ class UserController extends Controller
 
     protected function updateStudentBux($student)
     {
-        Log::info("Update Student id " . $student->id . " with bux_id " . $student->bux_id . "in BUX API " . Config::get('constants.bux_base_url'));
+        Log::info("Update Student id " . $student->id . " with bux_id " . $student->studentDetails->bux_id . "in BUX API " . Config::get('constants.bux_base_url'));
 
         $buxAPI = new Client([
             'base_uri' => Config::get('constants.bux_base_url'),
@@ -325,7 +325,7 @@ class UserController extends Controller
         ]);
 
         Log::info("Request to Bux API");
-        $buxResponse = $buxAPI->put(Config::get('constants.bux_base_url') . Config::get('constants.bux_student') . $student->bux_id, ['json' => Utilities::getJsonRequestForUpdateStudent($student)]);
+        $buxResponse = $buxAPI->put(Config::get('constants.bux_base_url') . Config::get('constants.bux_student') . $student->studentDetails->bux_id, ['json' => Utilities::getJsonRequestForUpdateStudent($student)]);
         //Get body of the response in JSON (Must use decode because of the bug )
         $contents = json_decode($buxResponse->getBody());
 

@@ -217,8 +217,9 @@ class AuthController extends Controller
             return null;
         }
 
-        $user->bux_id = $contents->details->id;
+        $user->studentDetails->bux_id = $contents->details->id;
         $user->save();
+        $user->studentDetails->save();
 
         $user['token'] = $this->tokenFromUser($user['id']);
 

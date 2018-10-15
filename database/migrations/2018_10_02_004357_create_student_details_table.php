@@ -24,6 +24,7 @@ class CreateStudentDetailsTable extends Migration
             $table->string('national_id')->unique();
             $table->string('student_id_number');
             $table->integer('councilor_id')->nullable();
+            $table->integer('bux_id')->nullable();
             $table->timestamps();
         });
     }
