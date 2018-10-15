@@ -46,6 +46,7 @@ class LoginResource extends JsonResource
                 $details['dob'] = $this->studentDetails->dob;
                 $details['gender'] = $this->studentDetails->gender;
                 $details['nationalId'] = $this->studentDetails->national_id;
+                $details['studentIdNumber'] = $this->studentDetails->student_id_number;
                 $details['councilor'] = $this->getCouncilorDetails($this->studentDetails->councilor);
                 $details['agent'] = $this->getAgentDetails($this->studentDetails->councilor->agent);
                 break;

@@ -42,14 +42,16 @@ class UserResource extends JsonResource
                 $details['dob'] = $this->studentDetails->dob;
                 $details['gender'] = $this->studentDetails->gender;
                 $details['nationalId'] = $this->studentDetails->national_id;
-
+                $details['studentIdNumber'] = $this->studentDetails->student_id_number;
                 break;
+
             case "councilor":
                 $details['firstName'] = $this->councilorDetails->firstname;
                 $details['middleName'] = $this->councilorDetails->middlename;
                 $details['lastName'] = $this->councilorDetails->lastname;
                 $details['nationalId'] = $this->councilorDetails->national_id;
                 break;
+
             case "agent":
                 $details["agentName"] = $this->agentDetails->name;
                 $details["location"] = $this->agentDetails->location;

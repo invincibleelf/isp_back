@@ -6,17 +6,21 @@ use App\Http\Resources\UserResource;
 
 
 use App\User;
+use App\Utilities;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Config;
+use GuzzleHttp\Client;
+
+
 
 class UserController extends Controller
 {
     public function showProfile(Request $request)
     {
-        Log::info("Request object is ".$request);
         $user = Auth::user();
 
         Log::info("Show profile for current user  " . $user->email);
@@ -27,12 +31,12 @@ class UserController extends Controller
     public function updateProfile(Request $request)
     {
         $currentUser = Auth::user();
-
+        Log::info("Update Profile for user " . $currentUser->email);
 
         switch ($currentUser->role->name) {
             case 'student':
 
-                $fields = ['email', 'firstName', 'lastName', 'middleName', 'dob', 'gender', 'phone', 'nationalId'];
+                $fields = ['email', 'firstName', 'lastName', 'middleName', 'dob', 'gender', 'phone', 'nationalId', 'studentIdNumber'];
                 $credentials = $request->only($fields);
 
                 $validator = Validator::make(
@@ -44,7 +48,8 @@ class UserController extends Controller
                         'dob' => 'required',
                         'gender' => 'required',
                         'phone' => 'required',
-                        'nationalId' => 'required|unique:student_details,national_id'
+                        'nationalId' => 'required|unique:student_details,national_id',
+                        'studentIdNumber' => 'required'
                     ]
                 );
                 if ($validator->fails()) {
@@ -55,16 +60,49 @@ class UserController extends Controller
                     ]);
                 }
 
-                $currentUser->studentDetails->firstname = $credentials['firstName'];
-                $currentUser->studentDetails->lastname = $credentials['lastName'];
-                $currentUser->studentDetails->middlename = in_array('middleName', $credentials) ? $credentials['middleName'] : null;
-                $currentUser->studentDetails->dob = $credentials['dob'];
-                $currentUser->studentDetails->gender = $credentials['gender'];
-                $currentUser->studentDetails->national_id = $credentials['nationalId'];
-                $currentUser->phone = $credentials['phone'];
+                try {
+                    DB::beginTransaction();
+                    $currentUser->studentDetails->firstname = $credentials['firstName'];
+                    $currentUser->studentDetails->lastname = $credentials['lastName'];
+                    $currentUser->studentDetails->middlename = in_array('middleName', $credentials) ? $credentials['middleName'] : null;
+                    $currentUser->studentDetails->dob = $credentials['dob'];
+                    $currentUser->studentDetails->gender = $credentials['gender'];
+                    $currentUser->studentDetails->national_id = $credentials['nationalId'];
+                    $currentUser->studentDetails->student_id_number = $credentials['studentIdNumber'];
+                    $currentUser->phone = $credentials['phone'];
 
-                $currentUser->save();
-                DB::commit();
+                    Log::info("Update User with id " . $currentUser->id);
+                    $currentUser->save();
+                    $currentUser->studentDetails->save();
+
+
+                    Log::info("Update Student with id " .$currentUser->bux_id. "in BUX API " . Config::get('constants.bux_base_url'));
+
+                    $buxAPI = new Client([
+                        'base_uri' => Config::get('constants.bux_base_url'),
+                        'timeout' => 2.0
+                    ]);
+
+                    Log::info("Request to Bux API");
+                    $buxResponse = $buxAPI->put(Config::get('constants.bux_base_url') . Config::get('constants.bux_student').$currentUser->bux_id, ['json' => Utilities::getJsonRequestForUpdateStudent($currentUser)]);
+                    //Get body of the response in JSON (Must use decode because of the bug )
+                    $contents = json_decode($buxResponse->getBody());
+
+                    if (!$contents->code) {
+                        throw new \Exception("Error");
+                    }
+
+
+
+                    DB::commit();
+
+                } catch (\Exception $e) {
+                    //Roll back database if error
+                    Log::error("Error while saving to database" . $e->getMessage());
+                    DB::rollback();
+                    return response()->json(['Error' => $e->getMessage()], 500);
+                }
+
                 break;
 
             case 'councilor':
