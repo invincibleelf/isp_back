@@ -6,6 +6,7 @@ use App\StudentDetail;
 use App\AgentDetail;
 use App\CouncilorDetail;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Config;
 
 class UserTableSeeder extends Seeder
 {
@@ -25,6 +26,7 @@ class UserTableSeeder extends Seeder
         $agent->email = 'agent@example.com';
         $agent->password = bcrypt('123456');
         $agent->verified = true;
+        $agent->status = Config::get('enums.status.ACTIVE');
 
 
         $agent->role()->associate($role_agent);
@@ -49,6 +51,7 @@ class UserTableSeeder extends Seeder
         $councilor->email = 'councilor@example.com';
         $councilor->password = bcrypt('123456');
         $councilor->verified = true;
+        $councilor->status = Config::get('enums.status.ACTIVE');
         $councilor->role()->associate($role_councilor);
         $councilor->save();
 
@@ -67,6 +70,7 @@ class UserTableSeeder extends Seeder
         $student->email = 'student@example.com';
         $student->password = bcrypt('123456');
         $student->verified = true;
+        $student->status =Config::get('enums.status.ACTIVE');
 
         $student->role()->associate($role_student);
 

@@ -122,7 +122,7 @@ Route::put('/users/student/{id}',[
 Route::delete('/users/student/{id}',[
     'uses' => 'UserController@deleteStudent',
     'middleware' => ['api', 'roles'],
-    'role' => ['agent', 'councilor']
+    'role' => 'councilor'
 ]);
 
 

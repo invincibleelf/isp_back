@@ -108,9 +108,9 @@ class UserController extends Controller
                     ]);
                 }
 
-                $currentUser = $this->updateCouncilorDetails($currentUser,$credentials);
+                $currentUser = $this->updateCouncilorDetails($currentUser, $credentials);
 
-                Log::info("Save Councilor with id ". $currentUser->id);
+                Log::info("Save Councilor with id " . $currentUser->id);
                 $currentUser->save();
                 break;
 
@@ -336,7 +336,69 @@ class UserController extends Controller
     public function deleteStudent($id)
     {
 
-        return response(['test' => "OK"]);
+        $currentUser = Auth::user();
+        Log::info("Delete student with id " . $id . " by councilor " . $currentUser->email);
+
+        $student = User::with('studentDetails')->whereHas('studentDetails.councilor', function ($q) use ($currentUser) {
+            $q->where('id', $currentUser->councilorDetails->id);
+        })->find($id);
+
+        if ($student == null) {
+            Log::error("Student with id " . $id . " doesn't exist for " . $currentUser->role->name . " " . $currentUser->email);
+            return response([
+                "success" => false,
+                "message" => "Student with id " . $id . " doesn't exist for " . $currentUser->role->name . " " . $currentUser->email,
+                "status_code" => 404
+            ]);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $student->status = Config::get('enums.status.DELETED');
+            $student->save();
+
+            $responseBux = $this->deleteStudentBux($student);
+
+            if (!$responseBux->code) {
+                Log::error("Error from Bux API");
+                throw new \Exception("Error from bux API");
+            }
+
+            DB::commit();
+
+
+            return response([
+                "status" => true,
+                "status_code" => 200,
+                "message" => "Councilor with id " . $student->id . " deleted successfully"
+            ]);
+
+
+        } catch (\Exception $e) {
+            //Roll back database if error
+            Log::error("Error while saving to database. " . $e->getMessage());
+            DB::rollback();
+            return response()->json(['Error' => $e->getMessage()], 500);
+        }
+
+    }
+
+    protected function deleteStudentBux($student)
+    {
+        Log::info("Delete Student id " . $student->id . " with bux_id " . $student->studentDetails->bux_id . "in BUX API " . Config::get('constants.bux_base_url'));
+
+        $buxAPI = new Client([
+            'base_uri' => Config::get('constants.bux_base_url'),
+            'timeout' => 2.0
+        ]);
+
+        Log::info("Request to Bux API");
+        $buxResponse = $buxAPI->delete(Config::get('constants.bux_base_url') . Config::get('constants.bux_student') . $student->studentDetails->bux_id);
+        //Get body of the response in JSON (Must use decode because of the bug )
+        $contents = json_decode($buxResponse->getBody());
+
+        return $contents;
     }
 
 
@@ -450,6 +512,54 @@ class UserController extends Controller
 
     public function deleteCouncilor($id)
     {
+        $currentUser = Auth::user();
+        Log::info("Delete Councilor with id " . $id . " for " . $currentUser->role->name . " with email " . $currentUser->email);
+
+        $councilor = User::with('councilorDetails')->whereHas('councilorDetails.agent', function ($q) use ($currentUser) {
+            $q->where('id', $currentUser->agentDetails->id);
+        })->where('verified', '=', true)->find($id);
+
+        if ($councilor == null) {
+            Log::error("Councilor with id " . $id . " doesn't exist for " . $currentUser->email);
+            return response([
+                "success" => false,
+                "message" => "Councilor with id " . $id . " doesn't exist for " . $currentUser->email,
+                "status_code" => 404
+
+            ]);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $students = User::with('studentDetails')->whereHas('studentDetails.councilor', function ($q) use ($councilor) {
+                $q->where('id', $councilor->councilorDetails->id);
+            })->get();
+
+            if (!empty($students)) {
+                return response([
+                    "success" => false,
+                    "message" => "Students Exists for councilor. Unable to delete councilor"
+                ]);
+            }
+
+            $councilor->status = Config::get('enums.status.DELETED');
+            $councilor->save();
+            DB::commit();
+            return response([
+                "status" => true,
+                "status_code" => 200,
+                "message" => "Councilor with id " . $councilor->id . " deleted successfully"
+            ]);
+
+
+        } catch (\Exception $e) {
+            //Roll back database if error
+            Log::error("Error while saving to database. " . $e->getMessage());
+            DB::rollback();
+            return response()->json(['Error' => $e->getMessage()], 500);
+        }
+
 
     }
 

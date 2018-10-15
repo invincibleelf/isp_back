@@ -20,6 +20,7 @@ class UserTable extends Migration
             $table->string('password');
             $table->rememberToken();
             $table->boolean('verified')->default(false);
+            $table->integer('status');
             $table->timestamps();
         });
         Schema::create('password_resets', function (Blueprint $table) {
