@@ -8,7 +8,6 @@ use App\Http\Resources\UserResource;
 use App\Http\Resources\UserResourceCollection;
 use App\User;
 use App\Utilities;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
@@ -109,12 +108,9 @@ class UserController extends Controller
                     ]);
                 }
 
-                $currentUser->councilorDetails->firstname = $credentials['firstName'];
-                $currentUser->councilorDetails->lastname = $credentials['lastName'];
-                $currentUser->councilorDetails->middlename = in_array('middleName', $credentials) ? $credentials['middleName'] : null;
-                $currentUser->councilorDetails->national_id = $credentials['nationalId'];
-                $currentUser->phone = $credentials['phone'];
+                $currentUser = $this->updateCouncilorDetails($currentUser,$credentials);
 
+                Log::info("Save Councilor with id ". $currentUser->id);
                 $currentUser->save();
                 break;
 
@@ -341,6 +337,120 @@ class UserController extends Controller
     {
 
         return response(['test' => "OK"]);
+    }
+
+
+    public function getCouncilors()
+    {
+        $currentUser = Auth::user();
+        Log::info("Get Councilors for " . $currentUser->role->name . " with email " . $currentUser->email);
+
+        $councilors = User::with('councilorDetails')->whereHas('councilorDetails.agent', function ($q) use ($currentUser) {
+            $q->where('id', $currentUser->agentDetails->id);
+        })->where('verified', '=', true)->get();
+
+        return new UserResourceCollection($councilors);
+
+
+    }
+
+    public function getCouncilor($id)
+    {
+        $currentUser = Auth::user();
+        Log::info("Get Councilor with id " . $id . " for " . $currentUser->role->name . " with email " . $currentUser->email);
+
+        $councilor = User::with('councilorDetails')->whereHas('councilorDetails.agent', function ($q) use ($currentUser) {
+            $q->where('id', $currentUser->agentDetails->id);
+        })->where('verified', '=', true)->find($id);
+
+        if ($councilor == null) {
+            Log::error("Councilor with id " . $id . " doesn't exist for " . $currentUser->email);
+            return response([
+                "success" => false,
+                "message" => "Councilor with id " . $id . " doesn't exist for " . $currentUser->email,
+                "status_code" => 404
+
+            ]);
+        }
+
+        return new UserResource($councilor);
+
+    }
+
+    public function updateCouncilor($id, Request $request)
+    {
+        $currentUser = Auth::user();
+        Log::info("Update Councilor with id " . $id . " for " . $currentUser->role->name . " with email " . $currentUser->email);
+
+        $councilor = User::with('councilorDetails')->whereHas('councilorDetails.agent', function ($q) use ($currentUser) {
+            $q->where('id', $currentUser->agentDetails->id);
+        })->where('verified', '=', true)->find($id);
+
+        if ($councilor == null) {
+            Log::error("Councilor with id " . $id . " doesn't exist for " . $currentUser->email);
+            return response([
+                "success" => false,
+                "message" => "Councilor with id " . $id . " doesn't exist for " . $currentUser->email,
+                "status_code" => 404
+
+            ]);
+        }
+
+        $fields = ['firstName', 'lastName', 'middleName', 'phone', 'nationalId'];
+        $credentials = $request->only($fields);
+
+        $validator = Validator::make(
+            $credentials,
+            [
+                'firstName' => 'required|max:255',
+                'lastName' => 'required|max:255',
+                'middleName => max:255',
+                'phone' => 'required',
+                'nationalId' => 'required|unique:student_details,national_id'
+            ]
+        );
+        if ($validator->fails()) {
+            return response([
+                'success' => false,
+                'message' => $validator->messages(),
+                'status_code' => 400
+            ]);
+        }
+
+        try {
+            DB::beginTransaction();
+            $councilor = $this->updateCouncilorDetails($councilor, $credentials);
+
+            Log::info("Save Councilor with id " . $councilor->id);
+            $councilor->save();
+            $councilor->councilorDetails->save();
+
+            DB::commit();
+
+            return new UserResource($councilor);
+        } catch (\Exception $e) {
+            //Roll back database if error
+            Log::error("Error while saving to database. " . $e->getMessage());
+            DB::rollback();
+            return response()->json(['Error' => $e->getMessage()], 500);
+        }
+
+
+    }
+
+    protected function updateCouncilorDetails($councilor, $credentials)
+    {
+        $councilor->councilorDetails->firstname = $credentials['firstName'];
+        $councilor->councilorDetails->lastname = $credentials['lastName'];
+        $councilor->councilorDetails->middlename = in_array('middleName', $credentials) ? $credentials['middleName'] : null;
+        $councilor->councilorDetails->national_id = $credentials['nationalId'];
+        $councilor->phone = $credentials['phone'];
+        return $councilor;
+    }
+
+    public function deleteCouncilor($id)
+    {
+
     }
 
 }

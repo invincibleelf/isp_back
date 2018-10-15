@@ -126,4 +126,35 @@ Route::delete('/users/student/{id}',[
 ]);
 
 
+/***
+ *
+ * Routes for getting and updating Councilor Information
+ *
+ */
+
+Route::get('/users/councilors', [
+    'uses' => 'UserController@getCouncilors',
+    'middleware' => ['api', 'roles'],
+    'role' => 'agent'
+]);
+
+Route::get('/users/councilor/{id}', [
+    'uses' => 'UserController@getCouncilor',
+    'middleware' => ['api', 'roles'],
+    'role' => 'agent'
+]);
+
+Route::put('/users/councilor/{id}', [
+    'uses' => 'UserController@updateCouncilor',
+    'middleware' => ['api', 'roles'],
+    'role' => 'agent'
+]);
+
+Route::delete('/users/councilor/{id}', [
+    'uses' => 'UserController@deleteCouncilor',
+    'middleware' => ['api', 'roles'],
+    'role' => 'agent'
+]);
+
+
 
