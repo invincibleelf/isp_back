@@ -225,7 +225,7 @@ class UserController extends Controller
 
             ]);
         } else {
-            return new UserResource($currentUser);
+            return new UserResource($student);
         }
     }
 

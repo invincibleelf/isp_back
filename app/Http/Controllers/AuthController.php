@@ -11,6 +11,7 @@ use App\PasswordResets;
 use App\SendMailable;
 use App\StudentDetail;
 use App\Utilities;
+use App\Http\Resources\UserResource;
 
 use Illuminate\Support\Facades\Log;
 use Mail;
@@ -185,6 +186,7 @@ class AuthController extends Controller
         $user->email = $credentials['email'];
         $user->password = bcrypt($credentials['password']);
         $user->verified = true;
+        $user->status = Config::get('enums.status.ACTIVE');
         $user->role()->associate((Role::where('name', $credentials['role'])->first()));
         Log::info("Save Student ");
         $user->save();
@@ -237,6 +239,7 @@ class AuthController extends Controller
         $user->email = $credentials['email'];
         $user->password = bcrypt($credentials['password']);
         $user->verified = false;
+        $user->status = Config::get('enums.status.ACTIVE');
         $user->role()->associate((Role::where('name', $credentials['role'])->first()));
 
         Log::info("Save Agent ");
@@ -508,6 +511,7 @@ class AuthController extends Controller
             $councilor->password = bcrypt($credentials['password']);
             $councilor->verified = true;
             $councilor->role()->associate((Role::where('name', 'councilor')->first()));
+            $councilor->status = Config::get('enums.status.ACTIVE');
             Log::info("Save Councilor ");
             $councilor->save();
 
@@ -526,11 +530,7 @@ class AuthController extends Controller
             $councilor->councilorDetails()->save($councilorDetail);
 
             DB::commit();
-            return response([
-                "success" => true,
-                "status-code" => 200,
-                "councilor" => $councilor
-            ]);
+            return new UserResource($councilor);
 
         } catch (\Exception $e) {
             //Roll back database if error
