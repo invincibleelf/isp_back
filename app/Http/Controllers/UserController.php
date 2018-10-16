@@ -62,7 +62,7 @@ class UserController extends Controller
 
                 try {
                     DB::beginTransaction();
-                    $currentUser = $this->updateStudentDetails($currentUser);
+                    $currentUser = $this->updateStudentDetails($currentUser,$credentials);
 
                     Log::info("Update User with id " . $currentUser->id);
                     $currentUser->save();
@@ -565,7 +565,6 @@ class UserController extends Controller
             DB::commit();
             return response([
                 "status" => true,
-                "status_code" => 200,
                 "message" => "Councilor with id " . $councilor->id . " deleted successfully"
             ]);
 
@@ -579,6 +578,7 @@ class UserController extends Controller
 
 
     }
+
 
 }
 
