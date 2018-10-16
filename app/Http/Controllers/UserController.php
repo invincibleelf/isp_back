@@ -144,7 +144,7 @@ class UserController extends Controller
                 $currentUser->agentDetails->legal_registration_number = $credentials['legalRegistrationNumber'];
                 $currentUser->agentDetails->bank_account_number = $credentials['bankAccountNumber'];
                 $currentUser->agentDetails->bank_account_name = $credentials['bankAccountName'];
-                $currentUser->agentDetails->valid_bank_openinng = $credentials['validBankOpening'];
+                $currentUser->agentDetails->valid_bank_opening = $credentials['validBankOpening'];
 
                 $currentUser->save();
                 $currentUser->agentDetails->save();
