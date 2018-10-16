@@ -63,7 +63,7 @@ class LoginResource extends JsonResource
                 $details["location"] = $this->agentDetails->location;
                 $details["nationalId"] = $this->agentDetails->national_id;
                 $details["legalRegistrationNumber"] = $this->agentDetails->legal_registration_number;
-                $details["validBankOpening"] = $this->agentDetails->valid_bank_open;
+                $details["validBankOpening"] = $this->agentDetails->valid_bank_opening;
                 $details["bankAccountNumber"] = $this->agentDetails->bank_account_number;
                 $details["bankAccountName"] = $this->agentDetails->bank_account_name;
                 break;
