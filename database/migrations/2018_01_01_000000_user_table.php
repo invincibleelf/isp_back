@@ -23,7 +23,7 @@ class UserTable extends Migration
             $table->integer('status');
             $table->timestamps();
         });
-        Schema::create('password_resets', function (Blueprint $table) {
+        Schema::create('password_resets_c', function (Blueprint $table) {
             $table->string('email')->index();
             $table->string('token');
             $table->timestamp('created_at')->nullable()->default(DB::raw('CURRENT_TIMESTAMP'));
