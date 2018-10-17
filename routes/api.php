@@ -59,6 +59,12 @@ Route::post('/createCouncilor', [
     'role' => "agent"
 ]);
 
+Route::post('/createStudent', [
+    'uses' => 'AuthController@createStudentByCouncilor',
+    'middleware' => ['api', 'roles'],
+    'role' => "councilor"
+]);
+
 Route::post('/change-password', [
     'uses' => 'PasswordController@changePassword',
     'middleware' => ['api', 'roles'],

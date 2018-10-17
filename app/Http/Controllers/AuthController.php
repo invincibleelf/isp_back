@@ -93,11 +93,30 @@ class AuthController extends Controller
 
                 try {
                     DB::beginTransaction();
-                    $user = $this->createStudent($credentials);
+                    $student = new User();
+                    $student = $this->createStudent($student,$credentials);
 
-                    if ($user === null) {
-                        throw new \Exception("Cannot save student to bux application", '0');
+                    $responseBux = $this->createStudentBux($student);
+
+                    if (!$responseBux->code) {
+                        Log::error("Error from Bux API");
+                        throw new \Exception("Error from bux API");
                     }
+
+                    $student->studentDetails->bux_id = $responseBux->details->id;
+                    $student->studentDetails->save();
+
+                    $token = $this->tokenFromUser($student->id);
+
+                    DB::commit();
+
+                    return response([
+                        "success" => true,
+                        "status_code" => 200,
+                        "email" => $student->email,
+                        "token" => $token,
+                        "role" => $student->role->name
+                    ]);
                 } catch (\Exception $e) {
                     //Roll back database if error
                     Log::error("Error while saving to database" . $e->getMessage());
@@ -105,14 +124,6 @@ class AuthController extends Controller
                     return response()->json(['error' => $e->getMessage()], 500);
                 }
 
-
-                return response([
-                    "success" => true,
-                    "status_code" => 200,
-                    "email" => $user->email,
-                    "token" => $user->token,
-                    "role" => $user->role->name
-                ]);
                 break;
 
             case "agent":
@@ -149,6 +160,8 @@ class AuthController extends Controller
                     DB::beginTransaction();
                     $user = $this->createAgent($credentials);
 
+
+
                 } catch (\Exception $e) {
                     //Roll back database if error
                     Log::error("Error while saving to database" . $e->getMessage());
@@ -180,18 +193,19 @@ class AuthController extends Controller
 
     }
 
-    protected function createStudent($credentials)
+    protected function createStudent($student,$credentials)
     {
 
-        $user = new User();
-        $user->phone = $credentials['phone'];
-        $user->email = $credentials['email'];
-        $user->password = bcrypt($credentials['password']);
-        $user->verified = true;
-        $user->status = Config::get('enums.status.ACTIVE');
-        $user->role()->associate((Role::where('name', $credentials['role'])->first()));
+        $student = new User();
+        $student->phone = $credentials['phone'];
+        $student->email = $credentials['email'];
+        $student->password = bcrypt($credentials['password']);
+        $student->verified = true;
+        $student->status = Config::get('enums.status.ACTIVE');
+        $student->role()->associate((Role::where('name', 'student')->first()));
+
         Log::info("Save Student ");
-        $user->save();
+        $student->save();
 
         $studentDetail = new StudentDetail();
         $studentDetail->firstname = $credentials['firstName'];
@@ -203,33 +217,27 @@ class AuthController extends Controller
         $studentDetail->student_id_number = $credentials['studentIdNumber'];
 
         Log::info("Save Student details ");
-        $user->studentDetails()->save($studentDetail);
+        $student->studentDetails()->save($studentDetail);
+
+        return $student;
 
 
-        Log::info("Create Student " . $credentials["email"] . "in BUX API " . Config::get('constants.bux_base_url'));
+    }
+
+    protected function createStudentBux($student){
+
+        Log::info("Create Student " . $student->email . "in BUX API " . Config::get('constants.bux_base_url'));
         $buxAPI = new Client([
             'base_uri' => Config::get('constants.bux_base_url'),
             'timeout' => 2.0
         ]);
 
         Log::info("Request to Bux API");
-        $buxResponse = $buxAPI->post(Config::get('constants.bux_base_url') . Config::get('constants.bux_student'), ['json' => Utilities::getJsonRequestForUpdateStudent($user)]);
+        $buxResponse = $buxAPI->post(Config::get('constants.bux_base_url') . Config::get('constants.bux_student'), ['json' => Utilities::getJsonRequestForUpdateStudent($student)]);
         //Get body of the response in JSON (Must use decode because of the bug )
         $contents = json_decode($buxResponse->getBody());
 
-        if (!$contents->code) {
-            return null;
-        }
-
-        $user->studentDetails->bux_id = $contents->details->id;
-        $user->save();
-        $user->studentDetails->save();
-
-        $user['token'] = $this->tokenFromUser($user['id']);
-
-
-        DB::commit();
-        return $user;
+        return $contents;
 
 
     }
@@ -336,7 +344,7 @@ class AuthController extends Controller
 
         Log::info("Initlaize Councilor Registration with email : " . $request['email']);
 
-        $fields = ['firstName', 'lastName', 'middleName', 'email', 'password', 'confirmPassword', 'phone', 'nationalId'];
+        $fields = ['firstName', 'lastName', 'middleName', 'email', 'password', 'confirmPassword', 'phone', 'nationalId','url'];
 
         // grab credentials from the request
         $credentials = $request->only($fields);
@@ -350,7 +358,8 @@ class AuthController extends Controller
                 'email' => 'required|email|max:255|unique:login_users_c',
                 'nationalId' => 'required|unique:councilor_details,national_id',
                 'password' => 'required|min:6',
-                'confirmPassword' => 'required_with:password|same:password'
+                'confirmPassword' => 'required_with:password|same:password',
+                'url'=>'required|url'
             ]
         );
 
@@ -394,7 +403,7 @@ class AuthController extends Controller
             Log::info("Save Councilor Details ");
             $councilor->councilorDetails()->save($councilorDetail);
 
-            $this->sendEmailToResetPassword($councilor);
+            $this->sendEmailToResetPassword($councilor,$credentials['url']);
 
             DB::commit();
 
@@ -412,7 +421,85 @@ class AuthController extends Controller
 
     }
 
-    protected function sendEmailToResetPassword($councilor){
+    public function createStudentByCouncilor(Request $request){
+        $currentUser = Auth::user();
+
+        $fields = ['firstName', 'lastName', 'middleName', 'dob', 'email', 'gender', 'password', 'confirmPassword', 'phone', 'nationalId', 'studentIdNumber','url'];
+        $credentials = $request->only($fields);
+
+        $validator = Validator::make(
+            $credentials,
+            [
+                'firstName' => 'required|max:255',
+                'lastName' => 'required|max:255',
+                'middleName => max:255',
+                'dob' => 'required',
+                'gender' => 'required',
+                'phone' => 'required',
+                'email' => 'required|email|max:255|unique:login_users_c',
+                'nationalId' => 'required|unique:student_details,national_id',
+                'password' => 'required|min:6',
+                'confirmPassword' => 'required_with:password|same:password',
+                'studentIdNumber' => 'required',
+                'url'=>'required|url'
+            ]
+        );
+        if ($validator->fails()) {
+            Log::error("Validation Error");
+            return response([
+                'success' => false,
+                'message' => $validator->messages(),
+                'status_code' => 400
+            ]);
+        }
+        Log::info("Create Student by councilor");
+
+        try {
+            DB::beginTransaction();
+            $student = new User();
+
+
+            $student = $this->createStudent($student,$credentials);
+            $student->studentDetails->councilor()->associate($currentUser->councilorDetails);
+
+            $responseBux = $this->createStudentBux($student);
+
+            if (!$responseBux->code) {
+                Log::error("Error from Bux API");
+                throw new \Exception("Error from bux API");
+            }
+
+
+            $student->studentDetails->bux_id = $responseBux->details->id;
+
+            $student->studentDetails->save();
+
+            $token = $this->tokenFromUser($student->id);
+
+            $this->sendEmailToResetPassword($student,$credentials['url']);
+
+            DB::commit();
+
+            return response([
+                "success" => true,
+                "status_code" => 200,
+                "email" => $student->email,
+                "token" => $token,
+                "role" => $student->role->name
+            ]);
+
+
+
+        } catch (\Exception $e) {
+            //Roll back database if error
+            Log::error("Error while saving to database" . $e->getMessage());
+            DB::rollback();
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+
+    }
+
+    protected function sendEmailToResetPassword($councilor,$url){
         Log::info("Send password reset email to ".$councilor->email);
         PasswordResets::where('email', $councilor->email)->delete();
 
@@ -421,7 +508,7 @@ class AuthController extends Controller
             'token' => str_random(64)
         ]);
 
-        Mail::to($passwordReset->email)->send(new PasswordResetUserCreate($councilor,Config::get('constants.password_reset_url'), $passwordReset->token));
+        Mail::to($passwordReset->email)->send(new PasswordResetUserCreate($councilor,$url, $passwordReset->token));
     }
 
 
