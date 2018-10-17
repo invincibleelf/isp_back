@@ -12,11 +12,12 @@ use App\SendMailable;
 use App\StudentDetail;
 use App\Utilities;
 use App\Http\Resources\UserResource;
+use App\Mail\PasswordResetUserCreate;
 
 use Illuminate\Support\Facades\Log;
-use Mail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Contracts\Auth\Guard;
@@ -25,6 +26,7 @@ use Illuminate\Support\Facades\DB;
 use Psy\Util\Json;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Config;
+
 
 
 class AuthController extends Controller
@@ -328,147 +330,9 @@ class AuthController extends Controller
         return $token;
     }
 
-    public function passwordResetEmail(Request $request)
-    {
-        $fields = ['email', 'url'];
-        // grab credentials from the request
-        $credentials = $request->only($fields);
-        foreach ($fields as $field) {
-            $credentials[$field] = trim($credentials[$field]);
-        }
-
-        $validator = Validator::make(
-            $credentials,
-            [
-                'email' => 'required|email|max:255',
-                'url' => 'required'
-            ]
-        );
-        if ($validator->fails()) {
-            Log::error("Validation Error");
-            return response([
-                'success' => false,
-                'message' => $validator->messages(),
-                'status_code' => 400
-            ]);
-        }
-
-        $email = $credentials['email'];
-
-        $user = User::where('email', '=', $email)->first();
-        if (!$user) {
-            return response([
-                'success' => false,
-                'message' => 'We can not find email you provided in our database! You can register a new account with this email.',
-                'status_code' => 404
-            ]);
-        }
-
-        // delete existings resets if exists
-        PasswordResets::where('email', $email)->delete();
-
-        $url = $credentials['url'];
-        $token = str_random(64);
-        $result = PasswordResets::create([
-            'email' => $email,
-            'token' => $token
-        ]);
-
-        if ($result) {
-            Mail::to($email)->queue(new SendMailable($url, $token));
-            return response([
-                'success' => true,
-                'message' => 'The mail has been sent successfully!',
-                'status_code' => 201
-            ]);
-        }
-        return response([
-            'success' => false,
-            'message' => $error,
-            'status_code' => 500
-        ]);
-    }
-
-    public function resetPassword(Request $request)
-    {
-        $fields = ['password', 'token'];
-        // grab credentials from the request
-        $credentials = $request->only($fields);
-        foreach ($fields as $field) {
-            $credentials[$field] = trim($credentials[$field]);
-        }
-
-        $validator = Validator::make(
-            $credentials,
-            [
-                'password' => 'required|min:6',
-                'token' => 'required'
-            ]
-        );
-        if ($validator->fails()) {
-            return response([
-                'success' => false,
-                'message' => $validator->messages(),
-                'status_code' => 400
-            ]);
-        }
-
-        $token = $credentials['token'];
-        $pr = PasswordResets::where('token', $token)->first(['email', 'created_at']);
-        $email = $pr['email'];
-        if (!$email) {
-            return response([
-                'success' => false,
-                'message' => 'Invalid reset password link!',
-                'status_code' => 404
-            ]);
-        }
-
-        $dateCreated = strtotime($pr['created_at']);
-        $expireInterval = 86400; // token expire interval in seconds (24 h)
-        $currentTime = time();
-
-        if ($currentTime - $dateCreated > $expireInterval) {
-            return response([
-                'success' => false,
-                'message' => 'The time to reset password has expired!',
-                'status_code' => 400
-            ]);
-        }
-
-        $password = bcrypt($credentials['password']);
-
-        $updatedRows = User::where('email', $email)->update(['password' => $password]);
-        if ($updatedRows > 0) {
-            PasswordResets::where('token', $token)->delete();
-            return response([
-                'success' => true,
-                'message' => 'The password has been changed successfully!',
-                'status_code' => 200
-            ]);
-        }
-        return response([
-            'success' => false,
-            'message' => $error,
-            'status_code' => 500
-        ]);
-    }
-
-    public function show(Request $request)
-    {
-
-        return response()->json(["users" => User::all()]);
-    }
-
-    public function details(Request $request)
-    {
-
-        return response()->json(["users" => User::all()]);
-    }
 
     public function createCouncilor(Request $request)
     {
-        Log::info("Request object is " . $request);
 
         Log::info("Initlaize Councilor Registration with email : " . $request['email']);
 
@@ -498,6 +362,7 @@ class AuthController extends Controller
                 'status_code' => 400
             ]);
         }
+
 
         Log::info("Create Councilor with email" . $credentials['email']);
 
@@ -529,17 +394,34 @@ class AuthController extends Controller
             Log::info("Save Councilor Details ");
             $councilor->councilorDetails()->save($councilorDetail);
 
+            $this->sendEmailToResetPassword($councilor);
+
             DB::commit();
+
+
             return new UserResource($councilor);
 
         } catch (\Exception $e) {
             //Roll back database if error
-            Log::error("Error while saving to databse" . $e->getMessage());
+            Log::error("Error while saving to database" . $e->getMessage());
             DB::rollback();
-            throw $e;
+            return response()->json(['error' => $e->getMessage()], 500);
+
         }
 
 
+    }
+
+    protected function sendEmailToResetPassword($councilor){
+        Log::info("Send password reset email to ".$councilor->email);
+        PasswordResets::where('email', $councilor->email)->delete();
+
+        $passwordReset = PasswordResets::create([
+            'email' => $councilor->email,
+            'token' => str_random(64)
+        ]);
+
+        Mail::to($passwordReset->email)->send(new PasswordResetUserCreate($councilor,Config::get('constants.password_reset_url'), $passwordReset->token));
     }
 
 

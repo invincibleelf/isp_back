@@ -42,13 +42,13 @@ Route::post('/login', [
 ]);
 
 Route::post('/password-reset-email', [
-    'uses' => 'AuthController@passwordResetEmail',
+    'uses' => 'PasswordController@passwordResetEmail',
     'as' => 'password-reset-email',
     'middleware' => 'api'
 ]);
 
 Route::post('/reset-password', [
-    'uses' => 'AuthController@resetPassword',
+    'uses' => 'PasswordController@resetPassword',
     'as' => 'reset-password',
     'middleware' => 'api'
 ]);
@@ -57,6 +57,12 @@ Route::post('/createCouncilor', [
     'uses' => 'AuthController@createCouncilor',
     'middleware' => ['api', 'roles'],
     'role' => "agent"
+]);
+
+Route::post('/change-password', [
+    'uses' => 'PasswordController@changePassword',
+    'middleware' => ['api', 'roles'],
+    'role' => ['student', 'agent', 'councilor']
 ]);
 
 
@@ -88,12 +94,11 @@ Route::get('/showProfile', [
     'role' => ['student', 'agent', 'councilor']
 ]);
 
-Route::put('/updateProfile',[
+Route::put('/updateProfile', [
     'uses' => 'UserController@updateProfile',
     'middleware' => ['api', 'roles'],
-    'role' => ['student','agent', 'councilor']
+    'role' => ['student', 'agent', 'councilor']
 ]);
-
 
 
 /***
@@ -113,16 +118,22 @@ Route::get('/users/student/{id}', [
     'role' => 'councilor'
 ]);
 
-Route::put('/users/student/{id}',[
+Route::put('/users/student/{id}', [
     'uses' => 'UserController@updateStudent',
     'middleware' => ['api', 'roles'],
     'role' => 'councilor'
 ]);
 
-Route::delete('/users/student/{id}',[
+Route::delete('/users/student/{id}', [
     'uses' => 'UserController@deleteStudent',
     'middleware' => ['api', 'roles'],
     'role' => 'councilor'
+]);
+
+Route::post('/createStudent', [
+    'uses' => 'AuthController@createStudentByCouncilor',
+    'middleware' => ['api', 'roles'],
+    'role' => "councilor"
 ]);
 
 
@@ -155,6 +166,8 @@ Route::delete('/users/councilor/{id}', [
     'middleware' => ['api', 'roles'],
     'role' => 'agent'
 ]);
+
+
 
 
 
