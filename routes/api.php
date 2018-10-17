@@ -174,6 +174,18 @@ Route::delete('/users/councilor/{id}', [
 ]);
 
 
+/***
+ *
+ * Routes for transfering students between councilors
+ *
+ */
+Route::post('/transfer-student', [
+    'uses' => 'UserController@transferStudents',
+    'middleware' => ['api', 'roles'],
+    'role' => "agent"
+]);
+
+
 
 
 
