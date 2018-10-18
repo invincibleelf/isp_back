@@ -19,7 +19,7 @@ class CreateCouncilorDetailsTable extends Migration
             $table->string('firstname', 255);
             $table->string('middlename', 255)->nullable();
             $table->string('lastname', 255);
-            $table->string('national_id')->unique();
+            $table->string('national_id');
             $table->integer('agent_id')->nullable();
             $table->integer('status');
             $table->timestamps();

@@ -18,7 +18,7 @@ class CreateAgentDetailsTable extends Migration
             $table->integer('user_id');
             $table->string('name',255);
             $table->string('location');
-            $table->string('national_id')->unique();
+            $table->string('national_id');
             $table->string('legal_registration_number')->nullable();
             $table->string('valid_bank_opening');
             $table->integer('bank_account_number');

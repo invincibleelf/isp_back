@@ -21,7 +21,7 @@ class CreateStudentDetailsTable extends Migration
             $table->string('lastname', 255);
             $table->date('dob');
             $table->string('gender')->nullable();
-            $table->string('national_id')->unique();
+            $table->string('national_id');
             $table->string('student_id_number');
             $table->integer('councilor_id')->nullable();
             $table->integer('bux_id')->nullable();

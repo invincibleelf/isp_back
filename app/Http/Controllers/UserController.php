@@ -9,6 +9,7 @@ use App\Http\Resources\UserResourceCollection;
 use App\StudentDetail;
 use App\User;
 use App\Utilities;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
@@ -37,7 +38,7 @@ class UserController extends Controller
         switch ($currentUser->role->name) {
             case 'student':
 
-                $fields = ['email', 'firstName', 'lastName', 'middleName', 'dob', 'gender', 'phone', 'nationalId', 'studentIdNumber'];
+                $fields = ['email', 'firstName', 'lastName', 'middleName', 'dob', 'gender', 'phone', 'nationalId', 'studentIdNumber','countryCode'];
                 $credentials = $request->only($fields);
 
                 $validator = Validator::make(
@@ -47,9 +48,9 @@ class UserController extends Controller
                         'lastName' => 'required|max:255',
                         'middleName => max:255',
                         'dob' => 'required',
-                        'gender' => 'required',
-                        'phone' => 'required',
-                        'nationalId' => 'required|unique:student_details,national_id',
+                        'countryCode' => 'required_with:phone|numeric',
+                        'phone' => 'required_with:countryCode|numeric',
+                        'nationalId' => 'required',
                         'studentIdNumber' => 'required'
                     ]
                 );
@@ -60,6 +61,21 @@ class UserController extends Controller
                         'status_code' => 400
                     ]);
                 }
+
+                Log::info("Validate mobile number");
+                if(array_key_exists('code', $credentials) ){
+                    $isValid = Utilities::validatePhoneNumber($credentials['code'],$credentials['phone']);
+
+                    if(!$isValid) {
+                        return response([
+                            'success' => false,
+                            'message' => "Phone number " . $credentials['phone'] . " is not valid ",
+                            'status_code' => 400
+                        ]);
+
+                    }
+                }
+
 
                 try {
                     DB::beginTransaction();
@@ -88,7 +104,7 @@ class UserController extends Controller
                 break;
 
             case 'councilor':
-                $fields = ['firstName', 'lastName', 'middleName', 'phone', 'nationalId'];
+                $fields = ['firstName', 'lastName', 'middleName', 'phone', 'nationalId','countryCode'];
                 $credentials = $request->only($fields);
 
                 $validator = Validator::make(
@@ -97,8 +113,9 @@ class UserController extends Controller
                         'firstName' => 'required|max:255',
                         'lastName' => 'required|max:255',
                         'middleName => max:255',
-                        'phone' => 'required',
-                        'nationalId' => 'required|unique:student_details,national_id'
+                        'countryCode' => 'required_with:phone|numeric',
+                        'phone' => 'required_with:countryCode|numeric',
+                        'nationalId' => 'required'
                     ]
                 );
                 if ($validator->fails()) {
@@ -109,6 +126,20 @@ class UserController extends Controller
                     ]);
                 }
 
+                Log::info("Validate mobile number");
+                if(array_key_exists('code', $credentials) ){
+                    $isValid = Utilities::validatePhoneNumber($credentials['code'],$credentials['phone']);
+
+                    if(!$isValid) {
+                        return response([
+                            'success' => false,
+                            'message' => "Phone number " . $credentials['phone'] . " is not valid ",
+                            'status_code' => 400
+                        ]);
+
+                    }
+                }
+
                 $currentUser = $this->updateCouncilorDetails($currentUser, $credentials);
 
                 Log::info("Save Councilor with id " . $currentUser->id);
@@ -116,15 +147,16 @@ class UserController extends Controller
                 break;
 
             case 'agent':
-                $fields = ['agentName', 'location', 'phone', 'nationalId', 'legalRegistrationNumber', 'bankAccountNumber', 'bankAccountName', 'validBankOpening'];
+                $fields = ['agentName', 'location', 'phone', 'nationalId', 'legalRegistrationNumber', 'bankAccountNumber', 'bankAccountName', 'validBankOpening','countryCode'];
                 $credentials = $request->only($fields);
 
                 $validator = Validator::make(
                     $credentials,
                     [
                         'agentName' => 'required|max:255',
-                        'phone' => 'required',
-                        'nationalId' => 'required|unique:agent_details,national_id',
+                        'countryCode' => 'required_with:phone|numeric',
+                        'phone' => 'required_with:countryCode|numeric',
+                        'nationalId' => 'required',
                         'bankAccountNumber' => 'required',
                         'bankAccountName' => 'required',
                         'validBankOpening' => 'required',
@@ -138,11 +170,28 @@ class UserController extends Controller
                     ]);
                 }
 
-                $currentUser->phone = $credentials['phone'];
+                Log::info("Validate mobile number");
+                if(array_key_exists('code', $credentials) ){
+                    $isValid = Utilities::validatePhoneNumber($credentials['code'],$credentials['phone']);
+
+                    if(!$isValid) {
+                        return response([
+                            'success' => false,
+                            'message' => "Phone number " . $credentials['phone'] . " is not valid ",
+                            'status_code' => 400
+                        ]);
+
+                    }
+                }
+
+                if(array_key_exists('phone',$credentials)){
+                    $currentUser->phone = $credentials['countryCode'].$credentials['phone'];
+                }
+
                 $currentUser->agentDetails->name = $credentials['agentName'];
                 $currentUser->agentDetails->national_id = $credentials['nationalId'];
                 $currentUser->agentDetails->location = $credentials['location'];
-                $currentUser->agentDetails->legal_registration_number = $credentials['legalRegistrationNumber'];
+                $currentUser->agentDetails->legal_registration_number = array_key_exists('legalRegistrationNumber',$credentials)?$credentials['legalRegistrationNumber']:null;
                 $currentUser->agentDetails->bank_account_number = $credentials['bankAccountNumber'];
                 $currentUser->agentDetails->bank_account_name = $credentials['bankAccountName'];
                 $currentUser->agentDetails->valid_bank_opening = $credentials['validBankOpening'];
@@ -262,7 +311,7 @@ class UserController extends Controller
             ]);
         }
 
-        $fields = ['firstName', 'lastName', 'middleName', 'dob', 'gender', 'phone', 'nationalId', 'studentIdNumber'];
+        $fields = ['firstName', 'lastName', 'middleName', 'dob', 'gender', 'phone', 'nationalId', 'studentIdNumber','countryCode'];
         $credentials = $request->only($fields);
 
         $validator = Validator::make(
@@ -273,8 +322,9 @@ class UserController extends Controller
                 'middleName => max:255',
                 'dob' => 'required',
                 'gender' => 'required',
-                'phone' => 'required',
-                'nationalId' => 'required|unique:student_details,national_id',
+                'countryCode' => 'required_with:phone|numeric',
+                'phone' => 'required_with:countryCode|numeric',
+                'nationalId' => 'required',
                 'studentIdNumber' => 'required'
             ]
         );
@@ -286,6 +336,19 @@ class UserController extends Controller
             ]);
         }
 
+        Log::info("Validate mobile number");
+        if(array_key_exists('code', $credentials) ){
+            $isValid = Utilities::validatePhoneNumber($credentials['code'],$credentials['phone']);
+
+            if(!$isValid) {
+                return response([
+                    'success' => false,
+                    'message' => "Phone number " . $credentials['phone'] . " is not valid ",
+                    'status_code' => 400
+                ]);
+
+            }
+        }
 
         try {
             DB::beginTransaction();
@@ -321,12 +384,15 @@ class UserController extends Controller
 
     protected function updateStudentDetails($student, $credentials)
     {
-        $student->phone = $credentials['phone'];
+        if(array_key_exists($credentials['phone'],$credentials)){
+            $student->phone = $credentials['countryCode'].$credentials['phone'];
+        }
+
         $student->studentDetails->firstname = $credentials['firstName'];
         $student->studentDetails->lastname = $credentials['lastName'];
-        $student->studentDetails->middlename = in_array('middleName', $credentials) ? $credentials['middleName'] : null;
+        $student->studentDetails->middlename = array_key_exists('middleName', $credentials) ? $credentials['middleName'] : null;
         $student->studentDetails->dob = $credentials['dob'];
-        $student->studentDetails->gender = $credentials['gender'];
+        $student->studentDetails->gender = array_key_exists('gender',$credentials)?$credentials['gender']:null;
         $student->studentDetails->national_id = $credentials['nationalId'];
         $student->studentDetails->student_id_number = $credentials['studentIdNumber'];
 
@@ -476,7 +542,7 @@ class UserController extends Controller
             ]);
         }
 
-        $fields = ['firstName', 'lastName', 'middleName', 'phone', 'nationalId'];
+        $fields = ['firstName', 'lastName', 'middleName', 'phone', 'nationalId','countryCode'];
         $credentials = $request->only($fields);
 
         $validator = Validator::make(
@@ -485,8 +551,9 @@ class UserController extends Controller
                 'firstName' => 'required|max:255',
                 'lastName' => 'required|max:255',
                 'middleName => max:255',
-                'phone' => 'required',
-                'nationalId' => 'required|unique:student_details,national_id'
+                'countryCode' => 'required_with:phone|numeric',
+                'phone' => 'required_with:countryCode|numeric',
+                'nationalId' => 'required'
             ]
         );
         if ($validator->fails()) {
@@ -497,6 +564,19 @@ class UserController extends Controller
             ]);
         }
 
+        Log::info("Validate mobile number");
+        if(array_key_exists('code', $credentials) ){
+            $isValid = Utilities::validatePhoneNumber($credentials['code'],$credentials['phone']);
+
+            if(!$isValid) {
+                return response([
+                    'success' => false,
+                    'message' => "Phone number " . $credentials['phone'] . " is not valid ",
+                    'status_code' => 400
+                ]);
+
+            }
+        }
         try {
             DB::beginTransaction();
             $councilor = $this->updateCouncilorDetails($councilor, $credentials);
@@ -524,7 +604,11 @@ class UserController extends Controller
         $councilor->councilorDetails->lastname = $credentials['lastName'];
         $councilor->councilorDetails->middlename = in_array('middleName', $credentials) ? $credentials['middleName'] : null;
         $councilor->councilorDetails->national_id = $credentials['nationalId'];
-        $councilor->phone = $credentials['phone'];
+
+       if(array_key_exists('phone',$credentials)){
+           $councilor->phone = $credentials['countryCode'].$credentials['phone'];
+       }
+
         return $councilor;
     }
 
@@ -659,9 +743,8 @@ class UserController extends Controller
             return response()->json(['Error' => $e->getMessage()], 500);
         }
 
-
-
     }
+
 
 
 }

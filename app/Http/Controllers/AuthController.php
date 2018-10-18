@@ -14,6 +14,7 @@ use App\Utilities;
 use App\Http\Resources\UserResource;
 use App\Mail\PasswordResetUserCreate;
 
+use http\Env\Response;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -59,7 +60,7 @@ class AuthController extends Controller
         switch ($role->name) {
             case "student":
 
-                $fields = ['firstName', 'lastName', 'middleName', 'dob', 'email', 'gender', 'password', 'confirmPassword', 'phone', 'nationalId', 'role', 'studentIdNumber'];
+                $fields = ['firstName', 'lastName', 'middleName', 'dob', 'email', 'gender', 'password', 'confirmPassword', 'phone', 'nationalId', 'role', 'studentIdNumber','countryCode'];
                 // grab credentials from the request
                 $credentials = $request->only($fields);
 
@@ -70,10 +71,10 @@ class AuthController extends Controller
                         'lastName' => 'required|max:255',
                         'middleName => max:255',
                         'dob' => 'required',
-                        'gender' => 'required',
-                        'phone' => 'required',
+                        'countryCode' => 'required_with:phone|numeric',
+                        'phone' => 'required_with:countryCode|numeric',
                         'email' => 'required|email|max:255|unique:login_users_c',
-                        'nationalId' => 'required|unique:student_details,national_id',
+                        'nationalId' => 'required',
                         'password' => 'required|min:6',
                         'confirmPassword' => 'required_with:password|same:password',
                         'role' => 'required',
@@ -87,6 +88,20 @@ class AuthController extends Controller
                         'message' => $validator->messages(),
                         'status_code' => 400
                     ]);
+                }
+
+                Log::info("Validate mobile number");
+                if(array_key_exists('countryCode', $credentials) ){
+                    $isValid = Utilities::validatePhoneNumber($credentials['countryCode'],$credentials['phone']);
+
+                    if(!$isValid) {
+                        return response([
+                            'success' => false,
+                            'message' => "Phone number " . $credentials['countryCode'].$credentials['phone'] . " is not valid ",
+                            'status_code' => 400
+                        ]);
+
+                    }
                 }
 
                 Log::info("Create Student");
@@ -127,16 +142,17 @@ class AuthController extends Controller
                 break;
 
             case "agent":
-                $fields = ['agentName', 'location', 'email', 'phone', 'password', 'confirmPassword', 'nationalId', 'legalRegistrationNumber', 'bankAccountNumber', 'bankAccountName', 'validBankOpening', 'role'];
+                $fields = ['agentName', 'location', 'email', 'phone', 'password', 'confirmPassword', 'nationalId', 'legalRegistrationNumber', 'bankAccountNumber', 'bankAccountName', 'validBankOpening', 'role','countryCode'];
                 // grab credentials from the request
                 $credentials = $request->only($fields);
                 $validator = Validator::make(
                     $credentials,
                     [
                         'agentName' => 'required|max:255',
-                        'phone' => 'required',
+                        'countryCode' => 'required_with:phone|numeric',
+                        'phone' => 'required_with:countryCode|numeric',
                         'email' => 'required|email|max:255|unique:login_users_c',
-                        'nationalId' => 'required|unique:agent_details,national_id',
+                        'nationalId' => 'required',
                         'password' => 'required|min:6',
                         'confirmPassword' => 'required_with:password|same:password',
                         'bankAccountNumber' => 'required',
@@ -154,12 +170,25 @@ class AuthController extends Controller
                     ]);
                 }
 
+                Log::info("Validate mobile number");
+                if(array_key_exists('countryCode', $credentials) ){
+                    $isValid = Utilities::validatePhoneNumber($credentials['countryCode'],$credentials['phone']);
+
+                    if(!$isValid) {
+                        return response([
+                            'success' => false,
+                            'message' => "Phone number " . $credentials['countryCode'].$credentials['phone'] . " is not valid ",
+                            'status_code' => 400
+                        ]);
+
+                    }
+                }
+
                 Log::info("Create Agent");
 
                 try {
                     DB::beginTransaction();
                     $user = $this->createAgent($credentials);
-
 
 
                 } catch (\Exception $e) {
@@ -197,7 +226,10 @@ class AuthController extends Controller
     {
 
         $student = new User();
-        $student->phone = $credentials['phone'];
+
+        if(array_key_exists('countryCode',$credentials)){
+            $student->phone = $credentials['countryCode'].$credentials['phone'];
+        }
         $student->email = $credentials['email'];
         $student->password = bcrypt($credentials['password']);
         $student->verified = true;
@@ -245,7 +277,10 @@ class AuthController extends Controller
     protected function createAgent($credentials)
     {
         $user = new User();
-        $user->phone = $credentials['phone'];
+        if(array_key_exists('countryCode',$credentials)){
+            $user->phone = $credentials['countryCode'].$credentials['phone'];
+        }
+
         $user->email = $credentials['email'];
         $user->password = bcrypt($credentials['password']);
         $user->verified = false;
@@ -344,7 +379,7 @@ class AuthController extends Controller
 
         Log::info("Initlaize Councilor Registration with email : " . $request['email']);
 
-        $fields = ['firstName', 'lastName', 'middleName', 'email', 'password', 'confirmPassword', 'phone', 'nationalId','url'];
+        $fields = ['firstName', 'lastName', 'middleName', 'email', 'password', 'confirmPassword', 'phone', 'nationalId','url','countryCode'];
 
         // grab credentials from the request
         $credentials = $request->only($fields);
@@ -354,9 +389,10 @@ class AuthController extends Controller
                 'firstName' => 'required|max:255',
                 'lastName' => 'required|max:255',
                 'middleName => max:255',
-                'phone' => 'required',
+                'countryCode' => 'required_with:phone|numeric',
+                'phone' => 'required_with:countryCode|numeric',
                 'email' => 'required|email|max:255|unique:login_users_c',
-                'nationalId' => 'required|unique:councilor_details,national_id',
+                'nationalId' => 'required',
                 'password' => 'required|min:6',
                 'confirmPassword' => 'required_with:password|same:password',
                 'url'=>'required|url'
@@ -372,6 +408,20 @@ class AuthController extends Controller
             ]);
         }
 
+        Log::info("Validate mobile number");
+        if(array_key_exists('countryCode', $credentials) ){
+            $isValid = Utilities::validatePhoneNumber($credentials['countryCode'],$credentials['phone']);
+
+            if(!$isValid) {
+                return response([
+                    'success' => false,
+                    'message' => "Phone number " . $credentials['countryCode'].$credentials['phone'] . " is not valid ",
+                    'status_code' => 400
+                ]);
+
+            }
+        }
+
 
         Log::info("Create Councilor with email" . $credentials['email']);
 
@@ -380,7 +430,9 @@ class AuthController extends Controller
         try {
 
             $councilor = new User();
-            $councilor->phone = $credentials['phone'];
+            if(array_key_exists('countryCode',$credentials)){
+                $councilor->phone = $credentials['countryCode'].$credentials['phone'];
+            }
             $councilor->email = $credentials['email'];
             $councilor->password = bcrypt($credentials['password']);
             $councilor->verified = true;
@@ -392,7 +444,7 @@ class AuthController extends Controller
 
             $councilorDetail = new CouncilorDetail();
             $councilorDetail->firstname = $credentials['firstName'];
-            $councilorDetail->middlename = in_array('middleName', $credentials) ? $credentials['middleName'] : null;
+            $councilorDetail->middlename = array_key_exists('middleName', $credentials) ? $credentials['middleName'] : null;
             $councilorDetail->lastname = $credentials['lastName'];
             $councilorDetail->national_id = $credentials['nationalId'];
             $councilorDetail->status = 0;
@@ -424,7 +476,7 @@ class AuthController extends Controller
     public function createStudentByCouncilor(Request $request){
         $currentUser = Auth::user();
 
-        $fields = ['firstName', 'lastName', 'middleName', 'dob', 'email', 'gender', 'password', 'confirmPassword', 'phone', 'nationalId', 'studentIdNumber','url'];
+        $fields = ['firstName', 'lastName', 'middleName', 'dob', 'email', 'gender', 'password', 'confirmPassword', 'phone', 'nationalId', 'studentIdNumber','url','countryCode'];
         $credentials = $request->only($fields);
 
         $validator = Validator::make(
@@ -434,10 +486,10 @@ class AuthController extends Controller
                 'lastName' => 'required|max:255',
                 'middleName => max:255',
                 'dob' => 'required',
-                'gender' => 'required',
-                'phone' => 'required',
+                'countryCode' => 'required_with:phone|numeric',
+                'phone' => 'required_with:countryCode|numeric',
                 'email' => 'required|email|max:255|unique:login_users_c',
-                'nationalId' => 'required|unique:student_details,national_id',
+                'nationalId' => 'required',
                 'password' => 'required|min:6',
                 'confirmPassword' => 'required_with:password|same:password',
                 'studentIdNumber' => 'required',
@@ -452,6 +504,21 @@ class AuthController extends Controller
                 'status_code' => 400
             ]);
         }
+
+
+        if(array_key_exists('code', $credentials) ){
+            $isValid = Utilities::validatePhoneNumber($credentials['code'],$credentials['phone']);
+
+            if(!$isValid) {
+                return response([
+                    'success' => false,
+                    'message' => "Phone number " . $credentials['phone'] . " is not valid ",
+                    'status_code' => 400
+                ]);
+
+            }
+        }
+
         Log::info("Create Student by councilor");
 
         try {
