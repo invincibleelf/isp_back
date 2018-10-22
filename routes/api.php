@@ -185,9 +185,5 @@ Route::post('/transfer-student', [
     'role' => "agent"
 ]);
 
-
-
-
-
-
-
+// TODO Refactor API Routes like this
+Route::apiResource('users/payer','PayerController')->middleware('roles:student');

@@ -14,4 +14,8 @@ class StudentDetail extends Model
     public function councilor(){
         return $this->belongsTo('App\CouncilorDetail','councilor_id');
     }
+
+    public function payers(){
+        return $this->hasMany('App\PayerDetail');
+    }
 }
