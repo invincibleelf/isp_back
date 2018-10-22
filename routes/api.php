@@ -22,6 +22,12 @@ use Illuminate\Http\Request;
 //  Route::get('/test', 'APIControllers\AuthController@test');
 //});
 
+// api for the usage of different payment
+Route::resource('payment','PaymentControllers\PaymentController');
+
+Route::post('payment/HYLcomplete','PaymentControllers\PaymentController@HYLcomplete');
+
+
 /***
  *
  * Routes for User Login and egistration
@@ -184,10 +190,5 @@ Route::post('/transfer-student', [
     'middleware' => ['api', 'roles'],
     'role' => "agent"
 ]);
-
-
-
-
-
 
 

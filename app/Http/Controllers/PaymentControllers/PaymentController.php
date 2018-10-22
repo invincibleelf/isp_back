@@ -48,8 +48,7 @@ class PaymentController extends Controller
         $validator = Validator::make(
             $credentials,
             [
-                'transAmount' => 'required|regex:/^\d+(\.\d{1,2})?$/',
-                
+                'transAmount' => 'required|regex:/^\d+(\.\d{1,2})?$/',                
             ]
             );
 
@@ -95,11 +94,11 @@ class PaymentController extends Controller
             "charset" => 'UTF-8',
             "signMethod" => 'SHA-256',
             "secretKey" => SECRETKEY,
-            "paymentMode" => 'upop',
-
+            "paymentMode" => 'gnete_personal',
+            "transMode" => 'f',
             "transType" => '01',
             "merId" => MERID,
-            "backEndUrl" => 'http://60.242.47.187:3380/ISP_SERVER/public/api/payment/paymentComplete',
+            "backEndUrl" => 'http://60.242.47.187:3380/ISP_SERVER/public/api/payment/HYLcomplete',
             //"backEndUrl" => 'http://easylinkdemo.native.php.phptest.easytonetech.com/back-completed.php',
             "frontEndUrl" => 'http://60.242.47.187:3380/ISP_SERVER/public/api/payment/paymentComplete',
             //"frontEndUrl" => 'http://easylinkdemo.native.php.phptest.easytonetech.com/pay-completed.php',
@@ -164,5 +163,11 @@ class PaymentController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    public function HYLcomplete(Request $request)
+    {
+        file_put_contents("callback.txt", print_r($_POST,true));
+        dd($request);
     }
 }
