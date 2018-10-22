@@ -12,27 +12,31 @@ class UserTable extends Migration
     public function up()
     {
 
-        Schema::create('users', function (Blueprint $table) {
+        Schema::create('login_users_c', function (Blueprint $table) {
             $table->increments('id')->index()->unsigned();
-            $table->string('name');
+            $table->integer('role_id');
             $table->string('email')->unique();
+            $table->string('phone')->nullable();
             $table->string('password');
             $table->rememberToken();
+            $table->boolean('verified')->default(false);
+            $table->integer('status');
             $table->timestamps();
         });
-        Schema::create('password_resets', function (Blueprint $table) {
+        Schema::create('password_resets_c', function (Blueprint $table) {
             $table->string('email')->index();
             $table->string('token');
             $table->timestamp('created_at')->nullable()->default(DB::raw('CURRENT_TIMESTAMP'));
         });
-        // insert admin
-        DB::table('users')->insert(
-            array(
-                'email' => 'admin',
-                'name' => 'admin',
-                'password' => '$2y$10$/UB25CPnTCFmQhO0xOnM5elHuMVeNA2AGFha6Qdih1dv/69uqi7hG' //password
-            )
-        );
+//        // insert admin
+//        DB::table('users')->insert(
+//            array(
+//                'email' => 'admin',
+//                'firstname' => 'admin',
+//                'middlename'=>'ad',
+//                'password' => '$2y$10$/UB25CPnTCFmQhO0xOnM5elHuMVeNA2AGFha6Qdih1dv/69uqi7hG' //password
+//            )
+//        );
     }
     /**
      * Reverse the migrations.
@@ -41,7 +45,7 @@ class UserTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('users');
+        Schema::dropIfExists('login_users_c');
         Schema::dropIfExists('password_resets');
     }
 }
