@@ -80,4 +80,8 @@ class User extends Authenticatable
         return $this->hasOne('App\CouncilorDetail');
     }
 
+    public function payerDetails()
+    {
+        return $this->hasOne('App\PayerDetail');
+    }
 }

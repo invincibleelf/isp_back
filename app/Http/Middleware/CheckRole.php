@@ -13,7 +13,7 @@ class CheckRole
      * @param  \Closure  $next
      * @return mixed
      */
-    public function handle($request, Closure $next)
+    public function handle($request, Closure $next,...$roles)
     {
         if ($request->user() === null) {
             return response([
@@ -23,11 +23,12 @@ class CheckRole
             ]);
         }
 
+        // TODO Temporary solution need to change in routes and middleware
 
-        $actions = $request->route()->getAction();
-
-        $roles = isset($actions['role']) ? $actions['role'] :null;
-
+        if(!$roles){
+            $actions = $request->route()->getAction();
+            $roles = isset($actions['role']) ? $actions['role'] :null;
+        }
 
 
         if($request->user()->hasAnyRole($roles) || !$roles) {
