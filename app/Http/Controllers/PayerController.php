@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Resources\UserResource;
 use App\Http\Resources\UserResourceCollection;
 use App\Repositories\UserRepository;
+use App\Services\EmailService;
 use App\User;
 use App\Services\UserService;
 use App\Utilities;
@@ -21,11 +22,13 @@ class PayerController extends Controller
 
     private $userService;
     private $userRepository;
+    private $emailService;
 
-    public function __construct(UserService $userService, UserRepository $userRepository)
+    public function __construct(UserService $userService, UserRepository $userRepository,EmailService $emailService)
     {
         $this->userService = $userService;
         $this->userRepository = $userRepository;
+        $this->emailService = $emailService;
     }
 
     /**
@@ -92,8 +95,8 @@ class PayerController extends Controller
             DB::beginTransaction();
 
             $payer = new User();
-
             $payer = $this->userService->createPayer($payer, $credentials);
+            $this->emailService->sendEmailToResetPassword($payer,$credentials['url']);
 
             DB::commit();
 

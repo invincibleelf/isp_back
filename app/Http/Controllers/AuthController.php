@@ -14,7 +14,6 @@ use App\Utilities;
 use App\Http\Resources\UserResource;
 use App\Mail\PasswordResetUserCreate;
 
-use http\Env\Response;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -24,7 +23,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Support\Facades\DB;
-use Psy\Util\Json;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Config;
 
