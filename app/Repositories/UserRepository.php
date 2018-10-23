@@ -15,4 +15,8 @@ interface UserRepository
     public function getPayersByCurrentUser($currentUser);
 
     public function getPayerByIdAndCurrentUser($id,$currentUser);
+
+    public function getStudentsByCurrentUser($currentUser);
+
+    public function getStudentByIdAndCurrentUser($id,$currentUser);
 }

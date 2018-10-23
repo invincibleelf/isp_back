@@ -19,4 +19,14 @@ interface UserService
     public function getFailureResponse($message,$code);
 
     public function successMessage($message,$code);
+
+    public function  createStudent($student,$credentials);
+
+    public function createStudentAtBux($student);
+
+    public function updateStudent($student,$credentials);
+
+    public function updateStudentAtBux($student);
+
+    public function deleteStudentAtBux($student);
 }

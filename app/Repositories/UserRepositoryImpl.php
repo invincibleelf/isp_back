@@ -34,4 +34,22 @@ class UserRepositoryImpl implements UserRepository
 
         return $payer;
     }
+
+    public function getStudentsByCurrentUser($currentUser)
+    {
+        $students = User::with('studentDetails')->whereHas('studentDetails.councilor', function ($q) use ($currentUser) {
+            $q->where('id', $currentUser->councilorDetails->id);
+        })->get();
+
+        return $students;
+    }
+
+    public function getStudentByIdAndCurrentUser($id, $currentUser)
+    {
+        $student = User::with('studentDetails')->whereHas('studentDetails.councilor', function ($q) use ($currentUser) {
+            $q->where('id', $currentUser->councilorDetails->id);
+        })->find($id);
+
+        return $student;
+    }
 }

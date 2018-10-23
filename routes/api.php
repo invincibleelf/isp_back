@@ -106,43 +106,6 @@ Route::put('/updateProfile', [
     'role' => ['student', 'agent', 'councilor']
 ]);
 
-
-/***
- *
- * Routes for getting and updating Student Information
- *
- */
-Route::get('/users/students', [
-    'uses' => 'UserController@getStudents',
-    'middleware' => ['api', 'roles'],
-    'role' => 'councilor'
-]);
-
-Route::get('/users/student/{id}', [
-    'uses' => 'UserController@getStudent',
-    'middleware' => ['api', 'roles'],
-    'role' => 'councilor'
-]);
-
-Route::put('/users/student/{id}', [
-    'uses' => 'UserController@updateStudent',
-    'middleware' => ['api', 'roles'],
-    'role' => 'councilor'
-]);
-
-Route::delete('/users/student/{id}', [
-    'uses' => 'UserController@deleteStudent',
-    'middleware' => ['api', 'roles'],
-    'role' => 'councilor'
-]);
-
-Route::post('/createStudent', [
-    'uses' => 'AuthController@createStudentByCouncilor',
-    'middleware' => ['api', 'roles'],
-    'role' => "councilor"
-]);
-
-
 /***
  *
  * Routes for getting and updating Councilor Information
@@ -186,4 +149,21 @@ Route::post('/transfer-student', [
 ]);
 
 // TODO Refactor API Routes like this
-Route::apiResource('users/payer','PayerController')->middleware('roles:student');
+
+/***
+ *
+ * Routes for getting and updating Payer Information
+ *
+ */
+Route::apiResource('users/payer','User\PayerController')->middleware('roles:student');
+
+
+/***
+ *
+ * Routes for getting and updating Student Information
+ *
+ */
+
+Route::apiResource('users/student','User\StudentController')->middleware('roles:councilor');
+
+

@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\User;
 
+use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
 use App\Http\Resources\UserResourceCollection;
 use App\Repositories\UserRepository;
@@ -82,8 +83,8 @@ class PayerController extends Controller
         }
 
 
-        if (array_key_exists('code', $credentials)) {
-            $isValid = Utilities::validatePhoneNumber($credentials['code'], $credentials['phone']);
+        if (array_key_exists('countryCode', $credentials)) {
+            $isValid = Utilities::validatePhoneNumber($credentials['countryCode'], $credentials['phone']);
             if (!$isValid) {
                 return response($this->userService->getFailureResponse("Phone number " . $credentials['phone'] . " is not valid ", 400));
 
@@ -106,6 +107,8 @@ class PayerController extends Controller
                 "email" => $payer->email,
                 "role" => $payer->role->name
             ]);
+
+
 
 
         } catch (\Exception $e) {
@@ -182,8 +185,8 @@ class PayerController extends Controller
         }
 
 
-        if (array_key_exists('code', $credentials)) {
-            $isValid = Utilities::validatePhoneNumber($credentials['code'], $credentials['phone']);
+        if (array_key_exists('countryCode', $credentials)) {
+            $isValid = Utilities::validatePhoneNumber($credentials['countryCode'], $credentials['phone']);
             if (!$isValid) {
                 return response($this->userService->getFailureResponse("Phone number " . $credentials['phone'] . " is not valid ", 400));
 
