@@ -29,4 +29,11 @@ interface UserService
     public function updateStudentAtBux($student);
 
     public function deleteStudentAtBux($student);
+
+    public function createCouncilor($councilor,$credentials);
+
+    public function updateCouncilor($councilor,$credentials);
+
+    public function updateAgent($agent,$credentials);
+
 }

@@ -2,22 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\CouncilorDetail;
 use App\AgentDetail;
 use App\Http\Resources\LoginResource;
 use App\Role;
 use App\User;
-use App\PasswordResets;
-use App\SendMailable;
 use App\StudentDetail;
 use App\Utilities;
-use App\Http\Resources\UserResource;
-use App\Mail\PasswordResetUserCreate;
+
 
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Contracts\Auth\Guard;
@@ -372,209 +366,7 @@ class AuthController extends Controller
     }
 
 
-    public function createCouncilor(Request $request)
-    {
 
-        Log::info("Initlaize Councilor Registration with email : " . $request['email']);
-
-        $fields = ['firstName', 'lastName', 'middleName', 'email', 'password', 'confirmPassword', 'phone', 'nationalId','url','countryCode'];
-
-        // grab credentials from the request
-        $credentials = $request->only($fields);
-
-        $validator = Validator::make(
-            $credentials, [
-                'firstName' => 'required|max:255',
-                'lastName' => 'required|max:255',
-                'middleName => max:255',
-                'countryCode' => 'required_with:phone|numeric',
-                'phone' => 'required_with:countryCode|numeric',
-                'email' => 'required|email|max:255|unique:login_users_c',
-                'nationalId' => 'required',
-                'password' => 'required|min:6',
-                'confirmPassword' => 'required_with:password|same:password',
-                'url'=>'required|url'
-            ]
-        );
-
-        if ($validator->fails()) {
-            Log::error("Validation Error");
-            return response([
-                'success' => false,
-                'message' => $validator->messages(),
-                'status_code' => 400
-            ]);
-        }
-
-        Log::info("Validate mobile number");
-        if(array_key_exists('countryCode', $credentials) ){
-            $isValid = Utilities::validatePhoneNumber($credentials['countryCode'],$credentials['phone']);
-
-            if(!$isValid) {
-                return response([
-                    'success' => false,
-                    'message' => "Phone number " . $credentials['countryCode'].$credentials['phone'] . " is not valid ",
-                    'status_code' => 400
-                ]);
-
-            }
-        }
-
-
-        Log::info("Create Councilor with email" . $credentials['email']);
-
-        DB::beginTransaction();
-
-        try {
-
-            $councilor = new User();
-            if(array_key_exists('countryCode',$credentials)){
-                $councilor->phone = $credentials['countryCode'].$credentials['phone'];
-            }
-            $councilor->email = $credentials['email'];
-            $councilor->password = bcrypt($credentials['password']);
-            $councilor->verified = true;
-            $councilor->role()->associate((Role::where('name', 'councilor')->first()));
-            $councilor->status = Config::get('enums.status.ACTIVE');
-            Log::info("Save Councilor ");
-            $councilor->save();
-
-
-            $councilorDetail = new CouncilorDetail();
-            $councilorDetail->firstname = $credentials['firstName'];
-            $councilorDetail->middlename = array_key_exists('middleName', $credentials) ? $credentials['middleName'] : null;
-            $councilorDetail->lastname = $credentials['lastName'];
-            $councilorDetail->national_id = $credentials['nationalId'];
-            $councilorDetail->status = 0;
-
-            $councilorDetail->agent()->associate(Auth::user()->agentDetails);
-
-
-            Log::info("Save Councilor Details ");
-            $councilor->councilorDetails()->save($councilorDetail);
-
-            $this->sendEmailToResetPassword($councilor,$credentials['url']);
-
-            DB::commit();
-
-
-            return new UserResource($councilor);
-
-        } catch (\Exception $e) {
-            //Roll back database if error
-            Log::error("Error while saving to database" . $e->getMessage());
-            DB::rollback();
-            return response()->json(['error' => $e->getMessage()], 500);
-
-        }
-
-
-    }
-
-    public function createStudentByCouncilor(Request $request){
-        $currentUser = Auth::user();
-
-        $fields = ['firstName', 'lastName', 'middleName', 'dob', 'email', 'gender', 'password', 'confirmPassword', 'phone', 'nationalId', 'studentIdNumber','url','countryCode'];
-        $credentials = $request->only($fields);
-
-        $validator = Validator::make(
-            $credentials,
-            [
-                'firstName' => 'required|max:255',
-                'lastName' => 'required|max:255',
-                'middleName => max:255',
-                'dob' => 'required',
-                'countryCode' => 'required_with:phone|numeric',
-                'phone' => 'required_with:countryCode|numeric',
-                'email' => 'required|email|max:255|unique:login_users_c',
-                'nationalId' => 'required',
-                'password' => 'required|min:6',
-                'confirmPassword' => 'required_with:password|same:password',
-                'studentIdNumber' => 'required',
-                'url'=>'required|url'
-            ]
-        );
-        if ($validator->fails()) {
-            Log::error("Validation Error");
-            return response([
-                'success' => false,
-                'message' => $validator->messages(),
-                'status_code' => 400
-            ]);
-        }
-
-
-        if(array_key_exists('code', $credentials) ){
-            $isValid = Utilities::validatePhoneNumber($credentials['code'],$credentials['phone']);
-
-            if(!$isValid) {
-                return response([
-                    'success' => false,
-                    'message' => "Phone number " . $credentials['phone'] . " is not valid ",
-                    'status_code' => 400
-                ]);
-
-            }
-        }
-
-        Log::info("Create Student by councilor");
-
-        try {
-            DB::beginTransaction();
-            $student = new User();
-
-
-            $student = $this->createStudent($student,$credentials);
-            $student->studentDetails->councilor()->associate($currentUser->councilorDetails);
-
-            $responseBux = $this->createStudentBux($student);
-
-            if (!$responseBux->code) {
-                Log::error("Error from Bux API");
-                throw new \Exception("Error from bux API");
-            }
-
-
-            $student->studentDetails->bux_id = $responseBux->details->id;
-
-            $student->studentDetails->save();
-
-            $token = $this->tokenFromUser($student->id);
-
-            $this->sendEmailToResetPassword($student,$credentials['url']);
-
-            DB::commit();
-
-            return response([
-                "success" => true,
-                "status_code" => 200,
-                "email" => $student->email,
-                "token" => $token,
-                "role" => $student->role->name
-            ]);
-
-
-
-        } catch (\Exception $e) {
-            //Roll back database if error
-            Log::error("Error while saving to database" . $e->getMessage());
-            DB::rollback();
-            return response()->json(['error' => $e->getMessage()], 500);
-        }
-
-    }
-
-    protected function sendEmailToResetPassword($councilor,$url){
-        Log::info("Send password reset email to ".$councilor->email);
-        PasswordResets::where('email', $councilor->email)->delete();
-
-        $passwordReset = PasswordResets::create([
-            'email' => $councilor->email,
-            'token' => str_random(64)
-        ]);
-
-        Mail::to($passwordReset->email)->send(new PasswordResetUserCreate($councilor,$url, $passwordReset->token));
-    }
 
 
 }

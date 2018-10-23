@@ -52,4 +52,25 @@ class UserRepositoryImpl implements UserRepository
 
         return $student;
     }
+
+    public function getCouncilorsByCurrentUser($currentUser)
+    {
+        $councilors = User::with('councilorDetails')->whereHas('councilorDetails.agent', function ($q) use ($currentUser) {
+            $q->where('id', $currentUser->agentDetails->id);
+        })->where('verified', '=', true)->get();
+
+        return $councilors;
+
+
+    }
+
+    public function getCouncilorByIdAndCurrentUser($id, $currentUser)
+    {
+        $councilor = User::with('councilorDetails')->whereHas('councilorDetails.agent', function ($q) use ($currentUser) {
+            $q->where('id', $currentUser->agentDetails->id);
+        })->where('verified', '=', true)->find($id);
+
+        return $councilor;
+    }
+
 }

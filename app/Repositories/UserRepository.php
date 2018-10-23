@@ -19,4 +19,8 @@ interface UserRepository
     public function getStudentsByCurrentUser($currentUser);
 
     public function getStudentByIdAndCurrentUser($id,$currentUser);
+
+    public function getCouncilorsByCurrentUser($currentUser);
+
+    public function getCouncilorByIdAndCurrentUser($id,$currentUser);
 }

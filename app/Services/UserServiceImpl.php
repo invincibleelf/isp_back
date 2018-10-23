@@ -8,6 +8,7 @@
 
 namespace App\Services;
 
+use App\CouncilorDetail;
 use App\PayerDetail;
 use App\Role;
 
@@ -199,5 +200,73 @@ class UserServiceImpl implements UserService
         $contents = json_decode($buxResponse->getBody());
 
         return $contents;
+    }
+
+    public function createCouncilor($councilor,$credentials)
+    {
+        if(array_key_exists('countryCode',$credentials)){
+            $councilor->phone = $credentials['countryCode'].$credentials['phone'];
+        }
+        $councilor->email = $credentials['email'];
+        $councilor->password = bcrypt($credentials['password']);
+        $councilor->verified = true;
+        $councilor->role()->associate((Role::where('name', 'councilor')->first()));
+        $councilor->status = Config::get('enums.status.ACTIVE');
+        Log::info("Save Councilor ");
+        $councilor->save();
+
+
+        $councilorDetail = new CouncilorDetail();
+        $councilorDetail->firstname = $credentials['firstName'];
+        $councilorDetail->middlename = array_key_exists('middleName', $credentials) ? $credentials['middleName'] : null;
+        $councilorDetail->lastname = $credentials['lastName'];
+        $councilorDetail->national_id = $credentials['nationalId'];
+        $councilorDetail->status = 0;
+
+        $councilorDetail->agent()->associate(Auth::user()->agentDetails);
+
+
+        Log::info("Save Councilor Details ");
+        $councilor->councilorDetails()->save($councilorDetail);
+
+        return $councilor;
+    }
+
+    public function updateCouncilor($councilor,$credentials)
+    {
+        $councilor->councilorDetails->firstname = $credentials['firstName'];
+        $councilor->councilorDetails->lastname = $credentials['lastName'];
+        $councilor->councilorDetails->middlename = in_array('middleName', $credentials) ? $credentials['middleName'] : null;
+        $councilor->councilorDetails->national_id = $credentials['nationalId'];
+
+        if (array_key_exists('countryCode', $credentials)) {
+            $councilor->phone = $credentials['countryCode'] . $credentials['phone'];
+        }
+
+        $councilor->save();
+        $councilor->councilorDetails->save();
+
+        return $councilor;
+    }
+
+
+    public function updateAgent($agent, $credentials)
+    {
+        if (array_key_exists('countryCode', $credentials)) {
+            $agent->phone = $credentials['countryCode'] . $credentials['phone'];
+        }
+
+        $agent->agentDetails->name = $credentials['agentName'];
+        $agent->agentDetails->national_id = $credentials['nationalId'];
+        $agent->agentDetails->location = $credentials['location'];
+        $agent->agentDetails->legal_registration_number = array_key_exists('legalRegistrationNumber', $credentials) ? $credentials['legalRegistrationNumber'] : null;
+        $agent->agentDetails->bank_account_number = $credentials['bankAccountNumber'];
+        $agent->agentDetails->bank_account_name = $credentials['bankAccountName'];
+        $agent->agentDetails->valid_bank_opening = $credentials['validBankOpening'];
+
+        $agent->save();
+        $agent->agentDetails->save();
+
+        return $agent;
     }
 }

@@ -41,6 +41,11 @@ Route::post('/login', [
     'middleware' => 'api'
 ]);
 
+/***
+ *
+ * Routes for managing password
+ *
+ */
 Route::post('/password-reset-email', [
     'uses' => 'PasswordController@passwordResetEmail',
     'as' => 'password-reset-email',
@@ -53,39 +58,11 @@ Route::post('/reset-password', [
     'middleware' => 'api'
 ]);
 
-Route::post('/createCouncilor', [
-    'uses' => 'AuthController@createCouncilor',
-    'middleware' => ['api', 'roles'],
-    'role' => "agent"
-]);
-
-Route::post('/createStudent', [
-    'uses' => 'AuthController@createStudentByCouncilor',
-    'middleware' => ['api', 'roles'],
-    'role' => "councilor"
-]);
-
 Route::post('/change-password', [
     'uses' => 'PasswordController@changePassword',
     'middleware' => ['api', 'roles'],
     'role' => ['student', 'agent', 'councilor']
 ]);
-
-
-Route::post('/show', [
-    'uses' => 'AuthController@show',
-    'as' => 'show',
-    'middleware' => ['api', 'roles'],
-    'role' => 'student'
-]);
-
-Route::post('/details', [
-    'uses' => 'AuthController@details',
-    'as' => 'details',
-    'middleware' => ['api', 'roles'],
-    'role' => ['student', 'agent']
-]);
-
 
 /***
  *
@@ -93,49 +70,17 @@ Route::post('/details', [
  *
  */
 
-
 Route::get('/showProfile', [
-    'uses' => 'UserController@showProfile',
+    'uses' => 'User\UserController@showProfile',
     'middleware' => ['api', 'roles'],
     'role' => ['student', 'agent', 'councilor']
 ]);
 
 Route::put('/updateProfile', [
-    'uses' => 'UserController@updateProfile',
+    'uses' => 'User\UserController@updateProfile',
     'middleware' => ['api', 'roles'],
     'role' => ['student', 'agent', 'councilor']
 ]);
-
-/***
- *
- * Routes for getting and updating Councilor Information
- *
- */
-
-Route::get('/users/councilors', [
-    'uses' => 'UserController@getCouncilors',
-    'middleware' => ['api', 'roles'],
-    'role' => 'agent'
-]);
-
-Route::get('/users/councilor/{id}', [
-    'uses' => 'UserController@getCouncilor',
-    'middleware' => ['api', 'roles'],
-    'role' => 'agent'
-]);
-
-Route::put('/users/councilor/{id}', [
-    'uses' => 'UserController@updateCouncilor',
-    'middleware' => ['api', 'roles'],
-    'role' => 'agent'
-]);
-
-Route::delete('/users/councilor/{id}', [
-    'uses' => 'UserController@deleteCouncilor',
-    'middleware' => ['api', 'roles'],
-    'role' => 'agent'
-]);
-
 
 /***
  *
@@ -143,7 +88,7 @@ Route::delete('/users/councilor/{id}', [
  *
  */
 Route::post('/transfer-student', [
-    'uses' => 'UserController@transferStudents',
+    'uses' => 'User\UserController@transferStudents',
     'middleware' => ['api', 'roles'],
     'role' => "agent"
 ]);
@@ -165,5 +110,13 @@ Route::apiResource('users/payer','User\PayerController')->middleware('roles:stud
  */
 
 Route::apiResource('users/student','User\StudentController')->middleware('roles:councilor');
+
+/***
+ *
+ * Routes for getting and updating Councilor Information
+ *
+ */
+
+Route::apiResource('users/councilor','User\CouncilorController')->middleware('roles:agent');
 
 
