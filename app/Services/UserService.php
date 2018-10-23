@@ -34,6 +34,8 @@ interface UserService
 
     public function updateCouncilor($councilor,$credentials);
 
+    public function createAgent($agent,$credentials);
+
     public function updateAgent($agent,$credentials);
 
 }

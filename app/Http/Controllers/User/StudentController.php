@@ -215,7 +215,7 @@ class StudentController extends Controller
 
         try {
             DB::beginTransaction();
-            $student = $this->userService->updateStudent($student,$credentials);
+            $student = $this->userService->updateStudent($student, $credentials);
 
             $responseBux = $this->userService->updateStudentAtBux($student);
             if (!$responseBux->code) {

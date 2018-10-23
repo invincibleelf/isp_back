@@ -4,7 +4,10 @@ namespace App\Http\Controllers;
 
 use App\AgentDetail;
 use App\Http\Resources\LoginResource;
+use App\Repositories\UserRepository;
 use App\Role;
+use App\Services\EmailService;
+use App\Services\UserService;
 use App\User;
 use App\StudentDetail;
 use App\Utilities;
@@ -21,7 +24,6 @@ use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Config;
 
 
-
 class AuthController extends Controller
 {
     /**
@@ -32,6 +34,22 @@ class AuthController extends Controller
 
     use RegistersUsers;
 
+    private $userRepository;
+
+    private $userService;
+
+    private $emailService;
+
+    /*
+     * Constructor injection of  services and repositories
+     */
+
+    public function __construct(UserRepository $userRepository, UserService $userService, EmailService $emailService)
+    {
+        $this->userRepository = $userRepository;
+        $this->userService = $userService;
+        $this->emailService = $emailService;
+    }
 
     public function register(Guard $auth, Request $request)
     {
@@ -41,18 +59,14 @@ class AuthController extends Controller
         $role = Role::where('name', $request['role'])->first();
 
         if ($role === null) {
-            return response([
-                'success' => false,
-                'message' => "Invalid role for registration",
-                'status_code' => 403
-            ]);
+            return response($this->userService->getFailureResponse("Invalid role for registration", 400));
         }
 
 
         switch ($role->name) {
             case "student":
 
-                $fields = ['firstName', 'lastName', 'middleName', 'dob', 'email', 'gender', 'password', 'confirmPassword', 'phone', 'nationalId', 'role', 'studentIdNumber','countryCode'];
+                $fields = ['firstName', 'lastName', 'middleName', 'dob', 'email', 'gender', 'password', 'confirmPassword', 'phone', 'nationalId', 'role', 'studentIdNumber', 'countryCode'];
                 // grab credentials from the request
                 $credentials = $request->only($fields);
 
@@ -75,35 +89,27 @@ class AuthController extends Controller
                 );
                 if ($validator->fails()) {
                     Log::error("Validation Error");
-                    return response([
-                        'success' => false,
-                        'message' => $validator->messages(),
-                        'status_code' => 400
-                    ]);
+                    return response($this->userService->getFailureResponse($validator->messages(), '400'));
                 }
 
-                Log::info("Validate mobile number");
-                if(array_key_exists('countryCode', $credentials) ){
-                    $isValid = Utilities::validatePhoneNumber($credentials['countryCode'],$credentials['phone']);
 
-                    if(!$isValid) {
-                        return response([
-                            'success' => false,
-                            'message' => "Phone number " . $credentials['countryCode'].$credentials['phone'] . " is not valid ",
-                            'status_code' => 400
-                        ]);
+                Log::info("Validate mobile number");
+                if (array_key_exists('countryCode', $credentials)) {
+                    $isValid = Utilities::validatePhoneNumber($credentials['countryCode'], $credentials['phone']);
+                    if (!$isValid) {
+                        Log::error("Phone number " . $credentials['phone'] . " is not valid ");
+                        return response($this->userService->getFailureResponse("Phone number " . $credentials['phone'] . " is not valid ", 400));
 
                     }
                 }
 
-                Log::info("Create Student");
 
                 try {
                     DB::beginTransaction();
                     $student = new User();
-                    $student = $this->createStudent($student,$credentials);
+                    $student = $this->userService->createStudent($student, $credentials);
 
-                    $responseBux = $this->createStudentBux($student);
+                    $responseBux = $this->userService->createStudentAtBux($student);
 
                     if (!$responseBux->code) {
                         Log::error("Error from Bux API");
@@ -113,15 +119,12 @@ class AuthController extends Controller
                     $student->studentDetails->bux_id = $responseBux->details->id;
                     $student->studentDetails->save();
 
-                    $token = $this->tokenFromUser($student->id);
-
                     DB::commit();
 
                     return response([
                         "success" => true,
                         "status_code" => 200,
                         "email" => $student->email,
-                        "token" => $token,
                         "role" => $student->role->name
                     ]);
                 } catch (\Exception $e) {
@@ -134,7 +137,7 @@ class AuthController extends Controller
                 break;
 
             case "agent":
-                $fields = ['agentName', 'location', 'email', 'phone', 'password', 'confirmPassword', 'nationalId', 'legalRegistrationNumber', 'bankAccountNumber', 'bankAccountName', 'validBankOpening', 'role','countryCode'];
+                $fields = ['agentName', 'location', 'email', 'phone', 'password', 'confirmPassword', 'nationalId', 'legalRegistrationNumber', 'bankAccountNumber', 'bankAccountName', 'validBankOpening', 'role', 'countryCode'];
                 // grab credentials from the request
                 $credentials = $request->only($fields);
                 $validator = Validator::make(
@@ -155,33 +158,34 @@ class AuthController extends Controller
                 );
                 if ($validator->fails()) {
                     Log::error("Validation Error");
-                    return response([
-                        'success' => false,
-                        'message' => $validator->messages(),
-                        'status_code' => 400
-                    ]);
+                    return response($this->userService->getFailureResponse($validator->messages(), '400'));
                 }
 
-                Log::info("Validate mobile number");
-                if(array_key_exists('countryCode', $credentials) ){
-                    $isValid = Utilities::validatePhoneNumber($credentials['countryCode'],$credentials['phone']);
 
-                    if(!$isValid) {
-                        return response([
-                            'success' => false,
-                            'message' => "Phone number " . $credentials['countryCode'].$credentials['phone'] . " is not valid ",
-                            'status_code' => 400
-                        ]);
+                Log::info("Validate mobile number");
+                if (array_key_exists('countryCode', $credentials)) {
+                    $isValid = Utilities::validatePhoneNumber($credentials['countryCode'], $credentials['phone']);
+                    if (!$isValid) {
+                        Log::error("Phone number " . $credentials['phone'] . " is not valid ");
+                        return response($this->userService->getFailureResponse("Phone number " . $credentials['phone'] . " is not valid ", 400));
 
                     }
                 }
 
-                Log::info("Create Agent");
-
                 try {
                     DB::beginTransaction();
-                    $user = $this->createAgent($credentials);
+                    $agent = new User();
 
+                    $user = $this->userService->createAgent($agent,$credentials);
+
+                    DB::commit();
+
+                    return response([
+                        "success" => true,
+                        "status_code" => 200,
+                        "email" => $agent->email,
+                        "role" => $agent->role->name
+                    ]);
 
                 } catch (\Exception $e) {
                     //Roll back database if error
@@ -190,14 +194,6 @@ class AuthController extends Controller
                     return response()->json(['error' => $e->getMessage()], 500);
                 }
 
-
-                return response([
-                    "success" => true,
-                    "status_code" => 200,
-                    "email" => $user->email,
-                    "token" => $user->token,
-                    "role" => $user->role->name
-                ]);
                 break;
 
             default:
@@ -214,103 +210,10 @@ class AuthController extends Controller
 
     }
 
-    protected function createStudent($student,$credentials)
-    {
-
-        $student = new User();
-
-        if(array_key_exists('countryCode',$credentials)){
-            $student->phone = $credentials['countryCode'].$credentials['phone'];
-        }
-        $student->email = $credentials['email'];
-        $student->password = bcrypt($credentials['password']);
-        $student->verified = true;
-        $student->status = Config::get('enums.status.ACTIVE');
-        $student->role()->associate((Role::where('name', 'student')->first()));
-
-        Log::info("Save Student ");
-        $student->save();
-
-        $studentDetail = new StudentDetail();
-        $studentDetail->firstname = $credentials['firstName'];
-        $studentDetail->middlename = array_key_exists('middleName', $credentials) ? $credentials['middleName'] : null;
-        $studentDetail->lastname = $credentials['lastName'];
-        $studentDetail->dob = $credentials['dob'];
-        $studentDetail->gender = array_key_exists("gender", $credentials) ? $credentials['gender'] : null;
-        $studentDetail->national_id = $credentials['nationalId'];
-        $studentDetail->student_id_number = $credentials['studentIdNumber'];
-
-        Log::info("Save Student details ");
-        $student->studentDetails()->save($studentDetail);
-
-        return $student;
-
-
-    }
-
-    protected function createStudentBux($student){
-
-        Log::info("Create Student " . $student->email . "in BUX API " . Config::get('constants.bux_base_url'));
-        $buxAPI = new Client([
-            'base_uri' => Config::get('constants.bux_base_url'),
-            'timeout' => 2.0
-        ]);
-
-        Log::info("Request to Bux API");
-        $buxResponse = $buxAPI->post(Config::get('constants.bux_base_url') . Config::get('constants.bux_student'), ['json' => Utilities::getJsonRequestForUpdateStudent($student)]);
-        //Get body of the response in JSON (Must use decode because of the bug )
-        $contents = json_decode($buxResponse->getBody());
-
-        return $contents;
-
-
-    }
-
-    protected function createAgent($credentials)
-    {
-        $user = new User();
-        if(array_key_exists('countryCode',$credentials)){
-            $user->phone = $credentials['countryCode'].$credentials['phone'];
-        }
-
-        $user->email = $credentials['email'];
-        $user->password = bcrypt($credentials['password']);
-        $user->verified = false;
-        $user->status = Config::get('enums.status.ACTIVE');
-        $user->role()->associate((Role::where('name', $credentials['role'])->first()));
-
-        Log::info("Save Agent ");
-        $user->save();
-
-        $agentDetails = new AgentDetail();
-        $agentDetails->name = $credentials['agentName'];
-        $agentDetails->location = $credentials['location'];
-        $agentDetails->national_id = $credentials['nationalId'];
-        $agentDetails->legal_registration_number = array_key_exists('legalRegistrationNumber', $credentials) ? $credentials['legalRegistrationNumber'] : null;
-        $agentDetails->valid_bank_opening = $credentials['validBankOpening'];
-        $agentDetails->bank_account_number = $credentials['bankAccountNumber'];
-        $agentDetails->bank_account_name = $credentials['bankAccountName'];
-
-        //Default Status value
-        $agentDetails->status = 0;
-
-        Log::info("Save Agent Details for agent " . $user->email);
-        $user->agentDetails()->save($agentDetails);
-
-
-        $user['token'] = $this->tokenFromUser($user['id']);
-
-
-        DB::commit();
-        return $user;
-
-    }
 
 
     protected function login(Request $request)
     {
-        Log::info("Request is " . $request);
-
         auth()->shouldUse('api');
         // grab credentials from the request
         $credentials = $request->only('email', 'password');
@@ -364,9 +267,6 @@ class AuthController extends Controller
 
         return $token;
     }
-
-
-
 
 
 }

@@ -8,6 +8,7 @@
 
 namespace App\Services;
 
+use App\AgentDetail;
 use App\CouncilorDetail;
 use App\PayerDetail;
 use App\Role;
@@ -127,6 +128,8 @@ class UserServiceImpl implements UserService
         return $student;
     }
 
+
+
     public function createStudentAtBux($student)
     {
         Log::info("Create Student " . $student->email . "in BUX API " . Config::get('constants.bux_base_url'));
@@ -221,7 +224,6 @@ class UserServiceImpl implements UserService
         $councilorDetail->middlename = array_key_exists('middleName', $credentials) ? $credentials['middleName'] : null;
         $councilorDetail->lastname = $credentials['lastName'];
         $councilorDetail->national_id = $credentials['nationalId'];
-        $councilorDetail->status = 0;
 
         $councilorDetail->agent()->associate(Auth::user()->agentDetails);
 
@@ -247,6 +249,35 @@ class UserServiceImpl implements UserService
         $councilor->councilorDetails->save();
 
         return $councilor;
+    }
+    public function createAgent($agent, $credentials)
+    {
+        if (array_key_exists('countryCode', $credentials)) {
+            $agent->phone = $credentials['countryCode'] . $credentials['phone'];
+        }
+
+        $agent->email = $credentials['email'];
+        $agent->password = bcrypt($credentials['password']);
+        $agent->verified = false;
+        $agent->status = Config::get('enums.status.ACTIVE');
+        $agent->role()->associate((Role::where('name', $credentials['role'])->first()));
+
+        Log::info("Save Agent ");
+        $agent->save();
+
+        $agentDetails = new AgentDetail();
+        $agentDetails->name = $credentials['agentName'];
+        $agentDetails->location = $credentials['location'];
+        $agentDetails->national_id = $credentials['nationalId'];
+        $agentDetails->legal_registration_number = array_key_exists('legalRegistrationNumber', $credentials) ? $credentials['legalRegistrationNumber'] : null;
+        $agentDetails->valid_bank_opening = $credentials['validBankOpening'];
+        $agentDetails->bank_account_number = $credentials['bankAccountNumber'];
+        $agentDetails->bank_account_name = $credentials['bankAccountName'];
+
+        Log::info("Save Agent Details for agent " . $agent->email);
+        $agent->agentDetails()->save($agentDetails);
+
+        return $agent;
     }
 
 
