@@ -43,6 +43,7 @@ class UserServiceImpl implements UserService
         $payerDetail->firstname = $credentials['firstName'];
         $payerDetail->middlename = array_key_exists('middleName', $credentials) ? $credentials['middleName'] : null;
         $payerDetail->lastname = $credentials['lastName'];
+        $payerDetail->chinese_name = array_key_exists('chineseName', $credentials) ? $credentials['chineseName'] : null;
         $payerDetail->dob = $credentials['dob'];
         $payerDetail->gender = array_key_exists("gender", $credentials) ? $credentials['gender'] : null;
         $payerDetail->national_id = $credentials['nationalId'];
@@ -69,6 +70,7 @@ class UserServiceImpl implements UserService
         $payer->payerDetails->firstname = $credentials['firstName'];
         $payer->payerDetails->lastname = $credentials['lastName'];
         $payer->payerDetails->middlename = array_key_exists('middleName', $credentials) ? $credentials['middleName'] : null;
+        $payer->payerDetails->middlename = array_key_exists('chineseName', $credentials) ? $credentials['chineseName'] : null;
         $payer->payerDetails->dob = $credentials['dob'];
         $payer->payerDetails->gender = array_key_exists('gender', $credentials) ? $credentials['gender'] : null;
         $payer->payerDetails->bank_account_number = $credentials['bankAccountNumber'];
@@ -117,6 +119,7 @@ class UserServiceImpl implements UserService
         $studentDetail->firstname = $credentials['firstName'];
         $studentDetail->middlename = array_key_exists('middleName', $credentials) ? $credentials['middleName'] : null;
         $studentDetail->lastname = $credentials['lastName'];
+        $studentDetail->chinese_name = array_key_exists('chineseName', $credentials) ? $credentials['chineseName'] : null;
         $studentDetail->dob = $credentials['dob'];
         $studentDetail->gender = array_key_exists("gender", $credentials) ? $credentials['gender'] : null;
         $studentDetail->national_id = $credentials['nationalId'];
@@ -159,6 +162,7 @@ class UserServiceImpl implements UserService
         $student->studentDetails->firstname = $credentials['firstName'];
         $student->studentDetails->lastname = $credentials['lastName'];
         $student->studentDetails->middlename = array_key_exists('middleName', $credentials) ? $credentials['middleName'] : null;
+        $student->studentDetails->chinese_name = array_key_exists('chineseName', $credentials) ? $credentials['chineseName'] : null;
         $student->studentDetails->dob = $credentials['dob'];
         $student->studentDetails->gender = array_key_exists('gender', $credentials) ? $credentials['gender'] : null;
         $student->studentDetails->national_id = $credentials['nationalId'];

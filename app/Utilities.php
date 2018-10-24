@@ -22,6 +22,7 @@ class Utilities
         }
 
         $request['last_name'] = $data->studentDetails->lastname;
+
         $request['dob'] = $data->studentDetails->dob;
         $request['national_id_number'] = $data->studentDetails->national_id;
         $request['student_id_number'] = $data->studentDetails->student_id_number;
