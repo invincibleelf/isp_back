@@ -25,7 +25,7 @@ class PayerController extends Controller
     private $userRepository;
     private $emailService;
 
-    public function __construct(UserService $userService, UserRepository $userRepository,EmailService $emailService)
+    public function __construct(UserService $userService, UserRepository $userRepository, EmailService $emailService)
     {
         $this->userService = $userService;
         $this->userRepository = $userRepository;
@@ -57,7 +57,7 @@ class PayerController extends Controller
      */
     public function store(Request $request)
     {
-        $fields = ['firstName', 'lastName', 'middleName', 'dob', 'email', 'gender', 'password', 'confirmPassword', 'phone', 'nationalId', 'url', 'countryCode', 'bankAccountNumber'];
+        $fields = ['firstName', 'lastName', 'middleName', 'chineseName', 'dob', 'email', 'gender', 'password', 'confirmPassword', 'phone', 'nationalId', 'url', 'countryCode', 'bankAccountNumber'];
         $credentials = $request->only($fields);
 
         $validator = Validator::make(
@@ -65,7 +65,8 @@ class PayerController extends Controller
             [
                 'firstName' => 'required|max:255',
                 'lastName' => 'required|max:255',
-                'middleName => max:255',
+                'middleName' => 'max:255',
+                'chineseName' => 'max:255',
                 'dob' => 'required',
                 'countryCode' => 'required_with:phone|numeric',
                 'phone' => 'required_with:countryCode|numeric',
@@ -97,7 +98,7 @@ class PayerController extends Controller
 
             $payer = new User();
             $payer = $this->userService->createPayer($payer, $credentials);
-            $this->emailService->sendEmailToResetPassword($payer,$credentials['url']);
+            $this->emailService->sendEmailToResetPassword($payer, $credentials['url']);
 
             DB::commit();
 
@@ -107,8 +108,6 @@ class PayerController extends Controller
                 "email" => $payer->email,
                 "role" => $payer->role->name
             ]);
-
-
 
 
         } catch (\Exception $e) {
@@ -162,7 +161,7 @@ class PayerController extends Controller
             return response($this->userService->getFailureResponse("Payer with id " . $id . " doesn't exist for " . $currentUser->email, 404));
         }
 
-        $fields = ['firstName', 'lastName', 'middleName', 'dob', 'gender', 'phone', 'countryCode', 'bankAccountNumber', 'nationalId'];
+        $fields = ['firstName', 'lastName', 'middleName', 'chineseName', 'dob', 'gender', 'phone', 'countryCode', 'bankAccountNumber', 'nationalId'];
         $credentials = $request->only($fields);
 
         $validator = Validator::make(
@@ -170,7 +169,8 @@ class PayerController extends Controller
             [
                 'firstName' => 'required|max:255',
                 'lastName' => 'required|max:255',
-                'middleName => max:255',
+                'middleName' => 'max:255',
+                'chineseName' => 'max:255',
                 'dob' => 'required',
                 'countryCode' => 'required_with:phone|numeric',
                 'phone' => 'required_with:countryCode|numeric',
@@ -239,7 +239,7 @@ class PayerController extends Controller
 
             DB::commit();
 
-            return response($this->userService->successMessage("Payer deleted successfully",200));
+            return response($this->userService->successMessage("Payer deleted successfully", 200));
         } catch (\Exception $e) {
             //Roll back database if error
             Log::error("Error while saving to database. " . $e->getMessage());

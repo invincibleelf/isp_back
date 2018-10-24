@@ -68,7 +68,7 @@ class StudentController extends Controller
 
         Log::info("Create student by councilor with email " . $currentUser->email);
 
-        $fields = ['firstName', 'lastName', 'middleName', 'dob', 'email', 'gender', 'password', 'confirmPassword', 'phone', 'nationalId', 'studentIdNumber', 'url', 'countryCode'];
+        $fields = ['firstName', 'lastName', 'middleName', 'chineseName', 'dob', 'email', 'gender', 'password', 'confirmPassword', 'phone', 'nationalId', 'studentIdNumber', 'url', 'countryCode'];
         $credentials = $request->only($fields);
 
         $validator = Validator::make(
@@ -76,7 +76,8 @@ class StudentController extends Controller
             [
                 'firstName' => 'required|max:255',
                 'lastName' => 'required|max:255',
-                'middleName => max:255',
+                'middleName' => 'max:255',
+                'chineseName' => 'max:255',
                 'dob' => 'required',
                 'countryCode' => 'required_with:phone|numeric',
                 'phone' => 'required_with:countryCode|numeric',
@@ -180,7 +181,7 @@ class StudentController extends Controller
             return response($this->userService->getFailureResponse("Student with id " . $id . " doesn't exist for " . $currentUser->email, 404));
         }
 
-        $fields = ['firstName', 'lastName', 'middleName', 'dob', 'gender', 'phone', 'nationalId', 'studentIdNumber', 'countryCode'];
+        $fields = ['firstName', 'lastName', 'middleName', 'chineseName', 'dob', 'gender', 'phone', 'nationalId', 'studentIdNumber', 'countryCode'];
         $credentials = $request->only($fields);
 
         $validator = Validator::make(
@@ -188,7 +189,8 @@ class StudentController extends Controller
             [
                 'firstName' => 'required|max:255',
                 'lastName' => 'required|max:255',
-                'middleName => max:255',
+                'middleName' => 'max:255',
+                'chineseName' => 'max:255',
                 'dob' => 'required',
                 'gender' => 'required',
                 'countryCode' => 'required_with:phone|numeric',

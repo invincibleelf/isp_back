@@ -66,7 +66,7 @@ class AuthController extends Controller
         switch ($role->name) {
             case "student":
 
-                $fields = ['firstName', 'lastName', 'middleName', 'dob', 'email', 'gender', 'password', 'confirmPassword', 'phone', 'nationalId', 'role', 'studentIdNumber', 'countryCode'];
+                $fields = ['firstName', 'lastName', 'middleName', 'chineseName', 'dob', 'email', 'gender', 'password', 'confirmPassword', 'phone', 'nationalId', 'role', 'studentIdNumber', 'countryCode'];
                 // grab credentials from the request
                 $credentials = $request->only($fields);
 
@@ -75,7 +75,8 @@ class AuthController extends Controller
                     [
                         'firstName' => 'required|max:255',
                         'lastName' => 'required|max:255',
-                        'middleName => max:255',
+                        'middleName' => 'max:255',
+                        'chineseName'=>'max:255',
                         'dob' => 'required',
                         'countryCode' => 'required_with:phone|numeric',
                         'phone' => 'required_with:countryCode|numeric',
@@ -176,7 +177,7 @@ class AuthController extends Controller
                     DB::beginTransaction();
                     $agent = new User();
 
-                    $user = $this->userService->createAgent($agent,$credentials);
+                    $user = $this->userService->createAgent($agent, $credentials);
 
                     DB::commit();
 
@@ -209,7 +210,6 @@ class AuthController extends Controller
 
 
     }
-
 
 
     protected function login(Request $request)

@@ -56,7 +56,7 @@ class UserController extends Controller
         switch ($currentUser->role->name) {
             case 'student':
 
-                $fields = ['email', 'firstName', 'lastName', 'middleName', 'dob', 'gender', 'phone', 'nationalId', 'studentIdNumber', 'countryCode'];
+                $fields = ['email', 'firstName', 'lastName', 'middleName', 'chineseName', 'dob', 'gender', 'phone', 'nationalId', 'studentIdNumber', 'countryCode'];
                 $credentials = $request->only($fields);
 
                 $validator = Validator::make(
@@ -64,7 +64,8 @@ class UserController extends Controller
                     [
                         'firstName' => 'required|max:255',
                         'lastName' => 'required|max:255',
-                        'middleName => max:255',
+                        'middleName' => 'max:255',
+                        'chineseName' => 'max:255',
                         'dob' => 'required',
                         'countryCode' => 'required_with:phone|numeric',
                         'phone' => 'required_with:countryCode|numeric',
@@ -215,7 +216,7 @@ class UserController extends Controller
 
                 break;
 
-                //TODO Logic if needed for other roles
+            //TODO Logic if needed for other roles
             default:
                 return response([
                     "success" => "false",
