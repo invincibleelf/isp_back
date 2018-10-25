@@ -219,6 +219,10 @@ class PaymentController extends Controller
         if(!empty($post) && $post['paymentResult'] == 'SUCCESS') {
 
             //call remote api ensuring data authenticity
+            file_put_contents("callback.txt", print_r($request->query,true));
+            file_put_contents("post.txt", print_r($_POST,true));
+            file_put_contents("dd.txt", print_r($request->all(),true));
+            file_put_contents("test.txt", print_r($request->orderNumber,true));
             $url = HYLCHECK;
             $p = new Payment();
             $data = $post;     
@@ -243,10 +247,7 @@ class PaymentController extends Controller
             }
             // file_put_contents("result.txt",print_r($result),true);
         }
-        // file_put_contents("callback.txt", print_r($request->query,true));
-        // file_put_contents("post.txt", print_r($_POST,true));
-        // file_put_contents("dd.txt", print_r($request->all(),true));
-        // file_put_contents("test.txt", print_r($request->orderNumber,true));
+        
     }
 
 }
