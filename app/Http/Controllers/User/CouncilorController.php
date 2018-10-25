@@ -106,7 +106,7 @@ class CouncilorController extends Controller
             $councilor = new User();
             $councilor = $this->userService->createCouncilor($councilor, $credentials);
 
-            $this->emailService->sendEmailToResetPassword($councilor, $credentials['url']);
+            $this->emailService->sendEmailToResetPasswordCreateUser($councilor, $credentials['url']);
 
             DB::commit();
 
@@ -135,7 +135,7 @@ class CouncilorController extends Controller
 
         if ($councilor == null) {
             Log::error("Councilor with id " . $id . " doesn't exist for " . $currentUser->email);
-            return response($this->userService->getFailureResponse("Student with id " . $id . " doesn't exist for " . $currentUser->email, 404));
+            return response($this->userService->getFailureResponse("Councilor with id " . $id . " doesn't exist for " . $currentUser->email, 404));
         } else {
             return response(new UserResource($councilor));
         }

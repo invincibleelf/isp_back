@@ -1,16 +1,16 @@
 <?php return array (
-  'codecasts/laravel-jwt' => 
-  array (
-    'providers' => 
-    array (
-      0 => 'Codecasts\\Auth\\JWT\\ServiceProvider',
-    ),
-  ),
   'barryvdh/laravel-cors' => 
   array (
     'providers' => 
     array (
       0 => 'Barryvdh\\Cors\\ServiceProvider',
+    ),
+  ),
+  'codecasts/laravel-jwt' => 
+  array (
+    'providers' => 
+    array (
+      0 => 'Codecasts\\Auth\\JWT\\ServiceProvider',
     ),
   ),
   'fideloper/proxy' => 
