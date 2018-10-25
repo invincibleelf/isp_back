@@ -3,7 +3,7 @@ namespace App\Http\Controllers\PaymentControllers;
 //defined('HYLSITE') or define('HYLSITE', 'https://elgw.gnete.com.hk:2221/easylink-mall-api');//local site 通知地址 
 class Payment {
 
-    private function handleErr($post) {
+    public function handleErr($post) {
         if(empty($post)) {
              echo '數據不能為空';exit;
          }
@@ -95,7 +95,7 @@ class Payment {
            }
     }
     
-    private function handleSPDate($arr) {
+    public function handleSPDate($arr) {
         $returnArr = array();
         
         if(isset($arr['cardNo']) && !empty($arr['cardNo'])) {
@@ -164,7 +164,7 @@ class Payment {
            }
     }
     
-    private function handleQuery($arr,$signature) {
+    public function handleQuery($arr,$signature) {
            $str = '';
            foreach($arr as $key=>$val) {
                $str .= $key.'='.$val.'&'; 
@@ -173,7 +173,7 @@ class Payment {
            return $str; 
     }
             
-    private function postRun($url,$arr,$risk='',$signature) {
+    public function postRun($url,$arr,$risk='',$signature) {
         $str = "<form  id='form1' name='form1' method='POST' enctype='multipart/form-data' action='$url'>";
                 foreach($arr as $key=>$val) {
                     $str .= "<input name='$key' type='text' value='$val'/>";    
@@ -189,7 +189,7 @@ class Payment {
     }
     
       
-    private function httpConnection($url, $Param) {
+    public function httpConnection($url, $Param) {
         $ch = curl_init();
         $this_header = array("content-type: application/x-www-form-urlencoded; charset=UTF-8");
         curl_setopt($ch, CURLOPT_URL, trim($url));
@@ -205,7 +205,7 @@ class Payment {
         return $content;
     }
     
-    private function handleUrl($str,$position='pay') {
+    public function handleUrl($str,$position='pay') {
         $url = '';
         switch ($str) {
             case 'dev site':
@@ -223,7 +223,7 @@ class Payment {
             }
            return $url;
     }
-    private function handleRiskRateInfo($arr) {
+    public function handleRiskRateInfo($arr) {
         $unArr = array(
             'postUrl','version','charset','signMethod','signature','merId','backEndUrl',
             'frontEndUrl','orderTime','orderNumber','bankNumber','paymentMode','transAmount','transCurrency',
@@ -243,7 +243,7 @@ class Payment {
      * @param type $arr
      * 18個參數
      */
-    private function riskRateInfo($arr) {
+    public function riskRateInfo($arr) {
         $arr = $this->handleRiskRateInfo($arr);
         $str = '';
         ksort($arr);
@@ -261,7 +261,7 @@ class Payment {
      * @return type
      * 17個字段
      */
-    private function signature($arr,$secretKey,$risk='') {
+    public function signature($arr,$secretKey,$risk='') {
             $str = '';
             if(!empty($risk)) {
                $arr['riskRateInfo'] = $risk;
@@ -277,7 +277,7 @@ class Payment {
            return $sha256;
     }
     
-    private function handleSignature($arr) {
+    public function handleSignature($arr) {
          $unArr = array(
             'postUrl','transMode','commodityCode','commodityName','commodityUrl','commodityUnitPrice','commodityQuantity',
              'transferFee','commodityDiscount','recipientName','recipientTel','deliveryDate','recipientAddress','deliveryMode',
