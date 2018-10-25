@@ -176,12 +176,12 @@ class Payment {
     public function postRun($url,$arr,$risk='',$signature) {
         $str = "<form  id='form1' name='form1' method='POST' enctype='multipart/form-data' action='$url'>";
                 foreach($arr as $key=>$val) {
-                    $str .= "<input name='$key' type='text' value='$val'/>";    
+                    $str .= "<input name='$key' type='hidden' value='$val'/>";    
                 }
                 if(!empty($risk)) {
-                    $str .= "<input name='riskRateInfo' type='text' value='$risk'/>";
+                    $str .= "<input name='riskRateInfo' type='hidden' value='$risk'/>";
                 }
-                    $str .= "<input name='signature' type='text' value='$signature'/>";
+                    $str .= "<input name='signature' type='hidden' value='$signature'/>";
                     $str .="<button  type='submit' class='btn btn-success'>提交</button>";
         $str .= "</form><script type='text/javascript'></script>";
         
