@@ -98,7 +98,7 @@ class PayerController extends Controller
 
             $payer = new User();
             $payer = $this->userService->createPayer($payer, $credentials);
-            $this->emailService->sendEmailToResetPassword($payer, $credentials['url']);
+            $this->emailService->sendEmailToResetPasswordCreateUser($payer, $credentials['url']);
 
             DB::commit();
 
