@@ -121,7 +121,7 @@ class StudentController extends Controller
             $student->studentDetails->bux_id = $responseBux->details->id;
             $student->studentDetails->save();
 
-            $this->emailService->sendEmailToResetPassword($student, $credentials['url']);
+            $this->emailService->sendEmailToResetPasswordCreateUser($student, $credentials['url']);
 
             DB::commit();
 

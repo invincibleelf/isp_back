@@ -9,6 +9,8 @@
 namespace App\Services;
 
 
+use App\Jobs\SendPasswordResetEmail;
+use App\Mail\PasswordResetMail;
 use App\Mail\PasswordResetUserCreate;
 use App\PasswordResets;
 use Illuminate\Support\Facades\Log;
@@ -19,7 +21,7 @@ class EmailServiceImpl implements EmailService
 
     public function sendEmailToResetPassword($user, $url)
     {
-        Log::info("Send password reset email to ".$user->email);
+        Log::info("Send password reset email to " . $user->email);
         PasswordResets::where('email', $user->email)->delete();
 
         $passwordReset = PasswordResets::create([
@@ -27,6 +29,29 @@ class EmailServiceImpl implements EmailService
             'token' => str_random(64)
         ]);
 
-        Mail::to($passwordReset->email)->send(new PasswordResetUserCreate($user,$url, $passwordReset->token));
+        $passwordResetMail = new PasswordResetMail($url, $passwordReset->token);
+
+        Log::info("Dispatch Job for sending email");
+        SendPasswordResetEmail::dispatch($passwordResetMail, $user->email);
+
+
+        // Mail::to($passwordReset->email)->send(new PasswordResetUserCreate($user,$url, $passwordReset->token));
+    }
+
+    public function sendEmailToResetPasswordCreateUser($user, $url)
+    {
+        Log::info("Send password reset email to " . $user->email);
+        PasswordResets::where('email', $user->email)->delete();
+
+        $passwordReset = PasswordResets::create([
+            'email' => $user->email,
+            'token' => str_random(64)
+        ]);
+
+        $passwordResetMail = new PasswordResetUserCreate($user,$url, $passwordReset->token);
+
+        Log::info("Dispatch Job for sending email");
+        SendPasswordResetEmail::dispatch($passwordResetMail, $user->email);
+
     }
 }
