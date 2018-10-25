@@ -23,8 +23,8 @@
     19 => 'Illuminate\\Translation\\TranslationServiceProvider',
     20 => 'Illuminate\\Validation\\ValidationServiceProvider',
     21 => 'Illuminate\\View\\ViewServiceProvider',
-    22 => 'Codecasts\\Auth\\JWT\\ServiceProvider',
-    23 => 'Barryvdh\\Cors\\ServiceProvider',
+    22 => 'Barryvdh\\Cors\\ServiceProvider',
+    23 => 'Codecasts\\Auth\\JWT\\ServiceProvider',
     24 => 'Fideloper\\Proxy\\TrustedProxyServiceProvider',
     25 => 'Laravel\\Tinker\\TinkerServiceProvider',
     26 => 'NunoMaduro\\Collision\\Adapters\\Laravel\\CollisionServiceProvider',
@@ -33,6 +33,7 @@
     29 => 'App\\Providers\\AuthServiceProvider',
     30 => 'App\\Providers\\EventServiceProvider',
     31 => 'App\\Providers\\RouteServiceProvider',
+    32 => 'App\\Providers\\UserServiceProvider',
   ),
   'eager' => 
   array (
@@ -46,14 +47,15 @@
     7 => 'Illuminate\\Pagination\\PaginationServiceProvider',
     8 => 'Illuminate\\Session\\SessionServiceProvider',
     9 => 'Illuminate\\View\\ViewServiceProvider',
-    10 => 'Codecasts\\Auth\\JWT\\ServiceProvider',
-    11 => 'Barryvdh\\Cors\\ServiceProvider',
+    10 => 'Barryvdh\\Cors\\ServiceProvider',
+    11 => 'Codecasts\\Auth\\JWT\\ServiceProvider',
     12 => 'Fideloper\\Proxy\\TrustedProxyServiceProvider',
     13 => 'Codecasts\\Auth\\JWT\\ServiceProvider',
     14 => 'App\\Providers\\AppServiceProvider',
     15 => 'App\\Providers\\AuthServiceProvider',
     16 => 'App\\Providers\\EventServiceProvider',
     17 => 'App\\Providers\\RouteServiceProvider',
+    18 => 'App\\Providers\\UserServiceProvider',
   ),
   'deferred' => 
   array (

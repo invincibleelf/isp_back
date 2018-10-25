@@ -24,7 +24,17 @@ class Payment {
         }
         $str .= 'riskRateInfo='.$risk.'&signature='.$signature;
         $url = HYLSITE;
-        return $this->postRun($url,$arr,$risk,$signature); 
+		
+		$arr["riskRateInfo"] = $risk;
+		$arr["signature"] = $signature;
+		$res = [
+			"url" => $url,
+			"parameters" => $arr,
+			
+			
+		];
+		return $res;
+        //return $this->postRun($url,$arr,$risk,$signature); 
     }
     
     public function actionQuery() {
