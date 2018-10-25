@@ -31,6 +31,7 @@ class EmailServiceImpl implements EmailService
 
         $passwordResetMail = new PasswordResetMail($url, $passwordReset->token);
 
+
         Log::info("Dispatch Job for sending email");
         SendPasswordResetEmail::dispatch($passwordResetMail, $user->email);
 
@@ -48,7 +49,7 @@ class EmailServiceImpl implements EmailService
             'token' => str_random(64)
         ]);
 
-        $passwordResetMail = new PasswordResetUserCreate($user,$url, $passwordReset->token);
+        $passwordResetMail = new PasswordResetUserCreate($user, $url, $passwordReset->token);
 
         Log::info("Dispatch Job for sending email");
         SendPasswordResetEmail::dispatch($passwordResetMail, $user->email);

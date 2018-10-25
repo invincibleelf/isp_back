@@ -119,4 +119,6 @@ Route::apiResource('users/student','User\StudentController')->middleware('roles:
 
 Route::apiResource('users/councilor','User\CouncilorController')->middleware('roles:agent');
 
+Route::apiResource('merchant','MerchantController')->only(['index','show','update'])->middleware('roles');
+
 
