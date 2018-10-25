@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Mail\PasswordResetMail;
 use App\PasswordResets;
+use App\Services\EmailService;
 use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,6 +16,12 @@ use Illuminate\Support\Facades\Mail;
 
 class PasswordController extends Controller
 {
+    private $emailService;
+    public function __construct(EmailService $emailService)
+    {
+        $this->emailService = $emailService;
+    }
+
     public function changePassword(Request $request)
     {
 
@@ -93,16 +100,9 @@ class PasswordController extends Controller
                 "status_code" => 400
             ]);
         }
-        PasswordResets::where('email', $credentials['email'])->delete();
 
-        $passwordReset = PasswordResets::create([
-            'email' => $credentials['email'],
-            'token' => str_random(64)
-        ]);
+        $this->emailService->sendEmailToResetPassword($user, $credentials['url']);
 
-
-        Log::info("Send password resrt email to ".$passwordReset->email);
-        Mail::to($passwordReset->email)->send(new PasswordResetMail($credentials['url'], $passwordReset->token));
         return response([
             "success" => true,
             "status_code" => 200,

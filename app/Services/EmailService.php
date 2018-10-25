@@ -13,4 +13,6 @@ interface EmailService
 {
 
     public function  sendEmailToResetPassword($user,$url);
+
+    public function sendEmailToResetPasswordCreateUser($user,$url);
 }
