@@ -115,7 +115,7 @@ class PaymentController extends Controller
             "signMethod" => 'SHA-256',
             "secretKey" => SECRETKEY,
             "paymentMode" => 'gnete_personal',
-
+			"transMode" => "f",
             "transType" => '01',
             "merId" => MERID,
             "backEndUrl" => 'http://60.242.47.187:3380/ISP_SERVER/public/api/payment/paymentComplete',
