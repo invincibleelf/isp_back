@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Repositories\MerchantRepository;
 use App\Services\MerchantService;
+use App\Utilities;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 class MerchantController extends Controller
@@ -15,7 +15,7 @@ class MerchantController extends Controller
 
     private $merchantService;
 
-    public function __construct(MerchantRepository $merchantRepository,MerchantService $merchantService)
+    public function __construct(MerchantRepository $merchantRepository, MerchantService $merchantService)
     {
         $this->merchantRepository = $merchantRepository;
         $this->merchantService = $merchantService;
@@ -28,18 +28,13 @@ class MerchantController extends Controller
      */
     public function index()
     {
-        Log::info("Get Merchants with services by user ". Auth::user()->id);
+        Log::info("Get Merchants with services by user ");
 
-        //$merchants =$this->merchantRepository->getMerchants();
-
-        $merchants = $this->merchantService->getMerchantsServicesFromBux();
-
-        return response([
-            "m"=>$merchants
-        ]);
+        $merchants = $this->merchantRepository->getMerchants();
 
         return response($merchants);
     }
+
 
     /**
      * Store a newly created resource in storage.
@@ -49,7 +44,47 @@ class MerchantController extends Controller
      */
     public function store(Request $request)
     {
-        //
+//        $credentials = $request->all();
+//
+//
+//        $m = [];
+//
+//        try {
+//            DB::beginTransaction();
+//            foreach ($credentials as $c) {
+//                $ids = [];
+//                $merchant = $this->merchantRepository->getMerchantByBuxId($c['id']);
+//
+//                if ($merchant == null) {
+//                    $merchant = new Merchant();
+//                    $merchant = $this->merchantService->updateMerchant($merchant, $c);
+//                }
+//
+//                foreach ($c['services'] as $s) {
+//                    $service = $this->merchantRepository->getServiceByBuxId($s['id']);
+//
+//                    if ($service == null) {
+//                        $service = new Service();
+//                        $service = $this->merchantService->updateService($service, $s);
+//                    }
+//                    array_push($ids, $service->id);
+//
+//                }
+//
+//                $merchant->services()->sync($ids);
+//                $merchant->load('services');
+//                array_push($m, $merchant);
+//            }
+//
+//           DB::commit();
+//            return response($m);
+//
+//        } catch (\Exception $e) {
+//            DB::rollBack();
+//            return response(["error" => $e->getMessage()]);
+//        }
+
+
     }
 
     /**
@@ -60,10 +95,13 @@ class MerchantController extends Controller
      */
     public function show($id)
     {
-        Log::info("Get Merchant and service by user ". Auth::user()->id);
+        Log::info("Get Merchant and service by user ");
 
-        $merchant =$this->merchantRepository->getMerchantById($id);
+        $merchant = $this->merchantRepository->getMerchantById($id);
 
+        if ($merchant == null) {
+            return response(Utilities::getResponseMessage("Merchant with id " . $id . " doesn't exist", false, 404));
+        }
         return response($merchant);
     }
 

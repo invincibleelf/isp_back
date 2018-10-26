@@ -15,4 +15,8 @@ interface MerchantRepository
     public function getMerchants();
 
     public function getMerchantById($id);
+
+    public function getMerchantByBuxId($buxId);
+
+    public function getServiceByBuxId($buxId);
 }

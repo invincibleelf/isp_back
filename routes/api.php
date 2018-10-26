@@ -23,9 +23,9 @@ use Illuminate\Http\Request;
 //});
 
 // api for the usage of different payment
-Route::resource('payment','PaymentControllers\PaymentController');
+Route::resource('payment', 'PaymentControllers\PaymentController');
 
-Route::post('payment/HYLcomplete','PaymentControllers\PaymentController@HYLcomplete');
+Route::post('payment/HYLcomplete', 'PaymentControllers\PaymentController@HYLcomplete');
 
 
 /***
@@ -106,7 +106,7 @@ Route::post('/transfer-student', [
  * Routes for getting and updating Payer Information
  *
  */
-Route::apiResource('users/payer','User\PayerController')->middleware('roles:student');
+Route::apiResource('users/payer', 'User\PayerController')->middleware('roles:student');
 
 
 /***
@@ -116,7 +116,7 @@ Route::apiResource('users/payer','User\PayerController')->middleware('roles:stud
  */
 
 
-Route::apiResource('users/student','User\StudentController')->middleware('roles:councilor');
+Route::apiResource('users/student', 'User\StudentController')->middleware('roles:councilor');
 
 /***
  *
@@ -124,9 +124,15 @@ Route::apiResource('users/student','User\StudentController')->middleware('roles:
  *
  */
 
-Route::apiResource('users/councilor','User\CouncilorController')->middleware('roles:agent');
+Route::apiResource('users/councilor', 'User\CouncilorController')->middleware('roles:agent');
 
-Route::apiResource('merchant','MerchantController')->only(['index','show','update'])->middleware('roles');
+/***
+ *
+ * Routes for getting and updating Merchant Information
+ *
+ */
+
+Route::apiResource('merchant', 'MerchantController')->only(['index', 'show', 'update'])->middleware('roles');
 
 
 

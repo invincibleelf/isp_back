@@ -11,5 +11,8 @@ namespace App\Services;
 
 interface MerchantService
 {
+    public function createMerchantServices();
     public function getMerchantsServicesFromBux();
+    public function updateMerchant($merchant,$credential);
+    public function updateService($service,$credential);
 }

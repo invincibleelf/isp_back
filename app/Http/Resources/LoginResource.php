@@ -2,8 +2,6 @@
 
 namespace App\Http\Resources;
 
-use App\Http\Resources\UserResource;
-
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class LoginResource extends JsonResource
@@ -47,16 +45,20 @@ class LoginResource extends JsonResource
                 $details['gender'] = $this->studentDetails->gender;
                 $details['nationalId'] = $this->studentDetails->national_id;
                 $details['studentIdNumber'] = $this->studentDetails->student_id_number;
-                $details['councilor'] = $this->getCouncilorDetails($this->studentDetails->councilor);
-                $details['agent'] = $this->getAgentDetails($this->studentDetails->councilor->agent);
+                if ($this->studentDetails->councilor !== null) {
+                    $details['councilor'] = $this->getCouncilorDetails($this->studentDetails->councilor);
+                    $details['agent'] = $this->getAgentDetails($this->studentDetails->councilor->agent);
+                }
+
                 break;
             case "councilor":
                 $details['firstName'] = $this->councilorDetails->firstname;
                 $details['middleName'] = $this->councilorDetails->middlename;
                 $details['lastName'] = $this->councilorDetails->lastname;
                 $details['nationalId'] = $this->councilorDetails->national_id;
-                $details['agent'] = $this->getAgentDetails($this->councilorDetails->agent);
-
+                if ($this->councilorDetails->agent !== null) {
+                    $details['agent'] = $this->getAgentDetails($this->councilorDetails->agent);
+                }
                 break;
             case "agent":
                 $details["agentName"] = $this->agentDetails->name;

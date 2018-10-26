@@ -10,7 +10,7 @@ namespace App\Repositories;
 
 
 use App\Models\Merchant;
-use Illuminate\Support\Facades\Log;
+use App\Models\Service;
 
 class MerchantRepositoryImpl implements MerchantRepository
 {
@@ -39,4 +39,15 @@ class MerchantRepositoryImpl implements MerchantRepository
     }
 
 
+    public function getMerchantByBuxId($buxId)
+    {
+        $merchant = Merchant::where('bux_id', $buxId)->first();
+        return $merchant;
+    }
+
+    public function getServiceByBuxId($buxId)
+    {
+        $service = Service::where('bux_id', $buxId)->first();
+        return $service;
+    }
 }
