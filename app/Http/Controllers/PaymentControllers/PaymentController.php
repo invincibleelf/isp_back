@@ -118,7 +118,7 @@ class PaymentController extends Controller
 			"transMode" => "f",
             "transType" => '01',
             "merId" => MERID,
-            "backEndUrl" => 'http://60.242.47.187:3380/ISP_SERVER/public/api/payment/paymentComplete',
+            "backEndUrl" => 'http://60.242.47.187:3380/ISP_SERVER/public/api/payment/HYLcomplete',
             //"backEndUrl" => 'http://easylinkdemo.native.php.phptest.easytonetech.com/back-completed.php',
             "frontEndUrl" => 'http://60.242.47.187:3380/ISP_SERVER/public/api/payment/paymentComplete',
             //"frontEndUrl" => 'http://easylinkdemo.native.php.phptest.easytonetech.com/pay-completed.php',
@@ -237,12 +237,24 @@ class PaymentController extends Controller
             $signature = $p->signature($post,$secretKey);
             $Parameters = $p->handleQuery($post,$signature);
             $result = $p->httpConnection($url,$Parameters);
-            if($result == 1)
+			file_put_contents("result.txt", print_r($result,true));
+			print_r($result);
+            if($result)
             {
-                $transactionId = $data['orderNumber'];
-                $transaction = Transaction::find($transactrionId);
-                $transaction->status = 2;
-                $transaction->save();
+				$result = json_decode($result, true);
+				print_r($result);
+				if($result['paymentResult'] == 'SUCCESS')
+				{
+					$transactionId = $result['orderNumber'];
+					$transaction = Transaction::find($transactionId);
+					if($transaction && $transaction->status == 1)
+					{
+						$transaction->status = 2;
+						$transaction->save();
+					}
+					
+				}					
+                
                 //TODO update system payment
             }
             // file_put_contents("result.txt",print_r($result),true);
