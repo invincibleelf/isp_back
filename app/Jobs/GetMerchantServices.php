@@ -30,9 +30,13 @@ class GetMerchantServices implements ShouldQueue
      */
     public function handle(MerchantService $merchantService)
     {
-        Log::info("Job for getting merchants tests test");
+        Log::info("Starting job to get merchants and services from bux API");
 
-        $merchants = $merchantService->getMerchantsServicesFromBux();
+        $response = $merchantService->createMerchantServices();
+
+        Log::info("message is ".$response['message']);
+
+
 
 
 

@@ -17,7 +17,6 @@ class CreateMerchantServiceTable extends Migration
             $table->increments('id');
             $table->integer('merchant_id');
             $table->integer('service_id');
-            $table->timestamps();
         });
     }
 

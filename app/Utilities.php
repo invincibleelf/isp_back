@@ -54,10 +54,24 @@ class Utilities
 
         }
 
-        if(preg_match($regex,$phone)){
+        if (preg_match($regex, $phone)) {
             return true;
-        }else{
+        } else {
             return false;
         }
+    }
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  String $message Boolean $success Boolean $code
+     * @return array
+     */
+    public static function getResponseMessage($message, $success, $code)
+    {
+        return [
+            'success' => $success,
+            'message' => $message,
+            'status_code' => $code
+        ];
     }
 }
