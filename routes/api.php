@@ -135,4 +135,16 @@ Route::apiResource('users/councilor', 'User\CouncilorController')->middleware('r
 Route::apiResource('merchant', 'MerchantController')->only(['index', 'show', 'update'])->middleware('roles');
 
 
+/***
+ *
+ * Routes for getting Transactions Information
+ *
+ */
+
+Route::apiResource('transaction', 'TransactionController')->only(['index' ])->middleware('roles');
+
+Route::get('transaction/student/{id}','TransactionController@transactionsByStudent')->middleware('api','roles:agent,councilor');
+
+
+
 
