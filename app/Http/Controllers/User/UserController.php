@@ -166,6 +166,10 @@ class UserController extends Controller
                 break;
 
             case 'agent':
+                if ($currentUser->verified) {
+                    return response(Utilities::getResponseMessage("Verified agent cannot be updated. Please contact support", false, 400));
+                }
+
                 $fields = ['agentName', 'location', 'phone', 'nationalId', 'legalRegistrationNumber', 'bankAccountNumber', 'bankAccountName', 'validBankOpening', 'countryCode'];
                 $credentials = $request->only($fields);
 
@@ -229,90 +233,6 @@ class UserController extends Controller
         }
 
     }
-
-    //TODO Move this method to CouncilorController
-
-    public function transferStudents(Request $request)
-    {
-
-        $fields = ["fromId", "toId"];
-        $credentials = $request->only($fields);
-
-        $validator = Validator::make(
-            $credentials,
-            [
-                'fromId' => 'required|integer',
-                'toId' => 'required|integer'
-            ]
-        );
-        if ($validator->fails()) {
-            return response([
-                'success' => false,
-                'message' => $validator->messages(),
-                'status_code' => 400
-            ]);
-        }
-
-        Log::info("Transfer Student from councilor with id " . $credentials['fromId'] . " to with id " . $credentials["toId"]);
-        $currentUser = Auth::user();
-        $status = Config::get("enums.status.ACTIVE");
-
-        $oldCouncilor = User::with('councilorDetails')->whereHas('councilorDetails.agent', function ($q) use ($currentUser) {
-            $q->where('id', $currentUser->agentDetails->id);
-        })->where('verified', '=', true)->where('status', '=', $status)->find($credentials['fromId']);
-
-        $newCouncilor = User::with('councilorDetails')->whereHas('councilorDetails.agent', function ($q) use ($currentUser) {
-            $q->where('id', $currentUser->agentDetails->id);
-        })->where('verified', '=', true)->where('status', '=', $status)->find($credentials['toId']);
-
-        if (!$oldCouncilor || !$newCouncilor) {
-            Log::error("Councilor doesn't exists");
-            return response([
-                'success' => false,
-                'message' => "Councilor doesn't exist",
-                'status_code' => 400
-            ]);
-        }
-
-        $students = User::with('studentDetails')->whereHas('studentDetails.councilor', function ($q) use ($oldCouncilor) {
-            $q->where('id', $oldCouncilor->councilorDetails->id);
-        })->get();
-
-        if ($students->isEmpty()) {
-            Log::error("Students doesn't exist for councilor with id " . $oldCouncilor->id);
-            return response([
-                'success' => false,
-                'message' => "Students doesn't exist for councilor " . $oldCouncilor->email . " with id " . $oldCouncilor->id,
-                'status_code' => 400
-            ]);
-        }
-
-        try {
-            DB::beginTransaction();
-
-            Log::info("Update all the students with new councilor id " . $newCouncilor->councilorDetails->id);
-
-            StudentDetail::with('councilor')->whereHas('councilor', function ($q) use ($oldCouncilor) {
-                $q->where('id', $oldCouncilor->councilorDetails->id);
-            })->update(["councilor_id" => $newCouncilor->councilorDetails->id]);
-
-            DB::commit();
-
-            return response([
-                "success" => true,
-                "status_code" => 200,
-                "message" => "Students transfered successfully",
-            ]);
-
-        } catch (\Exception $e) {
-            //Roll back database if error
-            Log::error("Error while saving to database. " . $e->getMessage());
-            DB::rollback();
-            return response()->json(['Error' => $e->getMessage()], 500);
-        }
-
-    }
-
 
 }
 

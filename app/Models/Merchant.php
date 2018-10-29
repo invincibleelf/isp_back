@@ -14,7 +14,8 @@ class Merchant extends Model
      */
     protected $table = 'merchants';
 
-    public function services(){
-        return $this->belongsToMany('App\Models\Service','merchant_service','merchant_id','service_id');
+    public function services()
+    {
+        return $this->belongsToMany('App\Models\Service', 'merchant_service', 'merchant_id', 'service_id');
     }
 }

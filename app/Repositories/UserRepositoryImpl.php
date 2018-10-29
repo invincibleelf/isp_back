@@ -73,4 +73,21 @@ class UserRepositoryImpl implements UserRepository
         return $councilor;
     }
 
+    public function getVerifiedCouncilorByIdAndStatusAndCurrentAgent($id, $status,$currentAgent)
+    {
+        $councilor = User::with('councilorDetails')->whereHas('councilorDetails.agent', function ($q) use ($currentAgent) {
+            $q->where('id', $currentAgent->agentDetails->id);
+        })->where('verified', '=', true)->where('status', '=', $status)->find($id);
+
+        return $councilor;
+    }
+
+    public function transferStudents($oldCouncilor, $newCouncilor)
+    {
+        StudentDetail::with('councilor')->whereHas('councilor', function ($q) use ($oldCouncilor) {
+            $q->where('id', $oldCouncilor->councilorDetails->id);
+        })->update(["councilor_id" => $newCouncilor->councilorDetails->id]);
+    }
+
+
 }
