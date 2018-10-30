@@ -7,7 +7,7 @@ use App\Http\Resources\TransactionResourceCollection;
 use App\Repositories\TransactionRepository;
 use App\Repositories\UserRepository;
 use App\Utilities;
-use Illuminate\Http\Request;
+
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
@@ -15,9 +15,10 @@ class TransactionController extends Controller
 {
     private $transctionRepository;
 
-    private  $userRepository;
+    private $userRepository;
 
-    public function __construct(TransactionRepository $transactionRepository,UserRepository $userRepository)
+
+    public function __construct(TransactionRepository $transactionRepository, UserRepository $userRepository)
     {
         $this->transctionRepository = $transactionRepository;
         $this->userRepository = $userRepository;
@@ -42,21 +43,21 @@ class TransactionController extends Controller
      * @return \Illuminate\Http\Response
      */
 
-    public function transactionsByStudent($studentId){
+    public function transactionsByStudent($studentId)
+    {
         $currentUser = Auth::user();
         Log::info("Get transactions for student with id : $studentId by user $currentUser->email");
 
-        $student = $this->userRepository->getStudentByIdAndCurrentUser($studentId,$currentUser);
+        $student = $this->userRepository->getStudentByIdAndCurrentUser($studentId, $currentUser);
 
-        if($student == null){
-            return response(Utilities::getResponseMessage("Student with id : $studentId doesn't exist.",false,400));
+        if ($student == null) {
+            return response(Utilities::getResponseMessage("Student with id : $studentId doesn't exist.", false, 400));
         }
 
-        $transactions = $this->transctionRepository->getTransactionsbyStudent($student,$currentUser);
+        $transactions = $this->transctionRepository->getTransactionsbyStudent($student, $currentUser);
 
         return response(new TransactionResourceCollection($transactions));
     }
-
 
 
     /**
@@ -71,11 +72,12 @@ class TransactionController extends Controller
 
         $transaction = $this->transctionRepository->getTransactionById($id);
 
-        if($transaction == null){
-            return response(Utilities::getResponseMessage("Transaction with id  $id is not available",false,400));
+        if ($transaction == null) {
+            return response(Utilities::getResponseMessage("Transaction with id  $id is not available", false, 400));
         }
 
         return response(new Transaction($transaction));
     }
+
 
 }

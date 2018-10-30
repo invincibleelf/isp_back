@@ -43,4 +43,10 @@ class SendPasswordResetEmail implements ShouldQueue
         Log::info("Send email to ".$this->email);
         Mail::to($this->email)->send($this->mailable);
     }
+
+
+    public function failed(\Exception $exception)
+    {
+        Log::info("Job failed with exception $exception->getMessage();");
+    }
 }
