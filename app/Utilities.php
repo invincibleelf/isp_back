@@ -74,4 +74,5 @@ class Utilities
             'status_code' => $code
         ];
     }
+
 }

@@ -7,8 +7,6 @@ use App\Http\Resources\UserResource;
 use App\Repositories\UserRepository;
 use App\Services\EmailService;
 use App\Services\UserService;
-use App\StudentDetail;
-use App\User;
 use App\Utilities;
 
 use Illuminate\Support\Facades\DB;
@@ -16,7 +14,6 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Config;
 
 
 class UserController extends Controller

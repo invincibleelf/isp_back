@@ -14,6 +14,52 @@ class Transaction extends JsonResource
      */
     public function toArray($request)
     {
-        return parent::toArray($request);
+
+        $details = [];
+        $details['id'] = $this->id;
+        $details['transactionSN'] = $this->transaction_sn;
+        $details['amount'] = $this->amount;
+
+        $details['student'] = $this->getStudentInfo();
+
+        if($this->payer !== null){
+            $details['payer'] = $this->getPayerInfo();
+        }
+
+        return $details;
+    }
+
+    protected function getStudentInfo(){
+
+        //@id should always be the id of the User model
+        $student["id"] = $this->student->user->id;
+        $student['email'] = $this->student->user->email;
+        $student['phone'] = $this->student->user->phone;
+        $student['firstName'] = $this->student->firstname;
+        $student['middleName'] = $this->student->middlename;
+        $student['lastName'] = $this->student->lastname;
+        $student['dob'] = $this->student->dob;
+        $student['gender'] = $this->student->gender;
+        $student['nationalId'] = $this->student->national_id;
+        $student['studentIdNumber'] = $this->student->student_id_number;
+
+        return $student;
+    }
+
+    protected function getPayerInfo(){
+
+        //@id should always be the id of the User model
+        $payer["id"] = $this->payer->user->id;
+        $payer['email'] = $this->payer->user->email;
+        $payer['phone'] = $this->payer->user->phone;
+
+        $payer['firstName'] = $this->payer->firstname;
+        $payer['middleName'] = $this->payer->middlename;
+        $payer['lastName'] = $this->payer->lastname;
+        $payer['dob'] = $this->payer->dob;
+        $payer['gender'] = $this->payer->gender;
+        $payer['nationalId'] = $this->payer->national_id;
+
+        return $payer;
     }
 }

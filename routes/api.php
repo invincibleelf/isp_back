@@ -118,8 +118,7 @@ Route::apiResource('users/councilor', 'User\CouncilorController')->middleware('r
 
 
 // Routes for transfering students between councilors
-Route::post('transfer-student','User\CouncilorController@transferStudents')->middleware('api','roles:agent');
-
+Route::post('transfer-student', 'User\CouncilorController@transferStudents')->middleware('api', 'roles:agent');
 
 
 /***
@@ -137,9 +136,9 @@ Route::apiResource('merchant', 'MerchantController')->only(['index', 'show', 'up
  *
  */
 
-Route::apiResource('transaction', 'TransactionController')->only(['index' ])->middleware('roles');
+Route::apiResource('transaction', 'TransactionController')->only(['index'])->middleware('roles');
 
-Route::get('transaction/student/{id}','TransactionController@transactionsByStudent')->middleware('api','roles:agent,councilor');
+Route::get('transaction/student/{id}', 'TransactionController@transactionsByStudent')->middleware('api', 'roles:agent,councilor');
 
 
 
