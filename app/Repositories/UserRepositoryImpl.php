@@ -37,19 +37,41 @@ class UserRepositoryImpl implements UserRepository
 
     public function getStudentsByCurrentUser($currentUser)
     {
-        $students = User::with('studentDetails')->whereHas('studentDetails.councilor', function ($q) use ($currentUser) {
-            $q->where('id', $currentUser->councilorDetails->id);
-        })->get();
+        switch ($currentUser->role->name) {
+            case 'councilor':
+                $students = User::with('studentDetails')->whereHas('studentDetails.councilor', function ($q) use ($currentUser) {
+                    $q->where('id', $currentUser->councilorDetails->id);
+                })->get();
+                break;
+
+            case 'agent':
+                $students = User::with('studentDetails')->whereHas('studentDetails.councilor.agent', function ($q) use ($currentUser) {
+                    $q->where('id', $currentUser->agentDetails->id);
+                })->get();
+                break;
+        }
 
         return $students;
     }
 
     public function getStudentByIdAndCurrentUser($id, $currentUser)
     {
-        $student = User::with('studentDetails')->whereHas('studentDetails.councilor', function ($q) use ($currentUser) {
-            $q->where('id', $currentUser->councilorDetails->id);
-        })->find($id);
+        switch ($currentUser->role->name) {
+            case 'councilor':
+                $student = User::with('studentDetails')->whereHas('studentDetails.councilor', function ($q) use ($currentUser) {
+                    $q->where('id', $currentUser->councilorDetails->id);
+                })->
+                find($id);
+                break;
 
+            case 'agent':
+                $student = User::with('studentDetails')->whereHas('studentDetails.councilor.agent', function ($q) use ($currentUser) {
+                    $q->where('id', $currentUser->agentDetails->id);
+                })->
+                find($id);
+                break;
+
+    }
         return $student;
     }
 
@@ -72,5 +94,22 @@ class UserRepositoryImpl implements UserRepository
 
         return $councilor;
     }
+
+    public function getVerifiedCouncilorByIdAndStatusAndCurrentAgent($id, $status, $currentAgent)
+    {
+        $councilor = User::with('councilorDetails')->whereHas('councilorDetails.agent', function ($q) use ($currentAgent) {
+            $q->where('id', $currentAgent->agentDetails->id);
+        })->where('verified', '=', true)->where('status', '=', $status)->find($id);
+
+        return $councilor;
+    }
+
+    public function transferStudents($oldCouncilor, $newCouncilor)
+    {
+        StudentDetail::with('councilor')->whereHas('councilor', function ($q) use ($oldCouncilor) {
+            $q->where('id', $oldCouncilor->councilorDetails->id);
+        })->update(["councilor_id" => $newCouncilor->councilorDetails->id]);
+    }
+
 
 }

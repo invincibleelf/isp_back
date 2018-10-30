@@ -24,8 +24,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
+
+        //Services
         $this->app->bind('App\Services\EmailService','App\Services\EmailServiceImpl');
-        $this->app->bind('App\Repositories\MerchantRepository', 'App\Repositories\MerchantRepositoryImpl');
         $this->app->bind('App\Services\MerchantService','App\Services\MerchantServiceImpl');
+
+        //Repositories
+        $this->app->bind('App\Repositories\MerchantRepository', 'App\Repositories\MerchantRepositoryImpl');
+        $this->app->bind('App\Repositories\TransactionRepository','App\Repositories\TransactionRepositoryImpl');
     }
 }

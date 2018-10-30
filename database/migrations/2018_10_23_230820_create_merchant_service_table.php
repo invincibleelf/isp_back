@@ -14,7 +14,6 @@ class CreateMerchantServiceTable extends Migration
     public function up()
     {
         Schema::create('merchant_service', function (Blueprint $table) {
-            $table->increments('id');
             $table->integer('merchant_id');
             $table->integer('service_id');
         });

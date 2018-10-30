@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\MerchantResource;
+use App\Http\Resources\MerchantResourceCollection;
 use App\Repositories\MerchantRepository;
 use App\Services\MerchantService;
 use App\Utilities;
@@ -32,7 +34,11 @@ class MerchantController extends Controller
 
         $merchants = $this->merchantRepository->getMerchants();
 
-        return response($merchants);
+        return response([
+            "success" => true,
+            "status_code" => 200,
+            "merchant" => new MerchantResourceCollection($merchants)
+        ]);
     }
 
 
@@ -102,7 +108,12 @@ class MerchantController extends Controller
         if ($merchant == null) {
             return response(Utilities::getResponseMessage("Merchant with id " . $id . " doesn't exist", false, 404));
         }
-        return response($merchant);
+
+        return response([
+            "success" => true,
+            "status_code" => 200,
+            "merchant" => new MerchantResource($merchant)
+        ]);
     }
 
     /**

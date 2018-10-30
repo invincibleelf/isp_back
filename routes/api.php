@@ -88,16 +88,6 @@ Route::put('/updateProfile', [
     'role' => ['student', 'agent', 'councilor']
 ]);
 
-/***
- *
- * Routes for transfering students between councilors
- *
- */
-Route::post('/transfer-student', [
-    'uses' => 'User\UserController@transferStudents',
-    'middleware' => ['api', 'roles'],
-    'role' => "agent"
-]);
 
 // TODO Refactor API Routes like this
 
@@ -126,6 +116,11 @@ Route::apiResource('users/student', 'User\StudentController')->middleware('roles
 
 Route::apiResource('users/councilor', 'User\CouncilorController')->middleware('roles:agent');
 
+
+// Routes for transfering students between councilors
+Route::post('transfer-student', 'User\CouncilorController@transferStudents')->middleware('api', 'roles:agent');
+
+
 /***
  *
  * Routes for getting and updating Merchant Information
@@ -133,6 +128,18 @@ Route::apiResource('users/councilor', 'User\CouncilorController')->middleware('r
  */
 
 Route::apiResource('merchant', 'MerchantController')->only(['index', 'show', 'update'])->middleware('roles');
+
+
+/***
+ *
+ * Routes for getting Transactions Information
+ *
+ */
+
+Route::apiResource('transaction', 'TransactionController')->only(['index'])->middleware('roles');
+
+Route::get('transaction/student/{id}', 'TransactionController@transactionsByStudent')->middleware('api', 'roles:agent,councilor');
+
 
 
 

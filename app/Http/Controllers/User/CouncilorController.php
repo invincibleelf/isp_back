@@ -12,6 +12,7 @@ use App\Utilities;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -245,6 +246,63 @@ class CouncilorController extends Controller
             return response()->json(['error' => $e->getMessage()], 500);
         }
 
+
+    }
+
+    public function transferStudents(Request $request)
+    {
+        $fields = ['fromId', 'toId'];
+        $credentials = $request->only($fields);
+
+        $validator = Validator::make(
+
+            $credentials,
+            [
+                'fromId' => 'required|integer',
+                'toId' => 'required|integer'
+            ]
+        );
+        if ($validator->fails()) {
+            return response(Utilities::getResponseMessage($validator->messages(), false, 400));
+        }
+
+        $currentUser = Auth::user();
+        $status = Config::get("enums.status.ACTIVE");
+
+        $oldCouncilor = $this->userRepository->getVerifiedCouncilorByIdAndStatusAndCurrentAgent($credentials['fromId'], $status, $currentUser);
+
+        $newCouncilor = $this->userRepository->getVerifiedCouncilorByIdAndStatusAndCurrentAgent($credentials['toId'], $status, $currentUser);
+
+        if (!$oldCouncilor || !$newCouncilor) {
+            Log::error("Councilor doesn't exists");
+            return response(Utilities::getResponseMessage("Councilor doesn't exist", false, 400));
+        }
+
+        $students = $this->userRepository->getStudentsByCurrentUser($oldCouncilor);
+
+        if ($students->isEmpty()) {
+            Log::error("Students doesn't exist for councilor with id " . $oldCouncilor->id);
+            return response(Utilities::getResponseMessage("Students doesn't exist for councilor $oldCouncilor->email with id: $oldCouncilor->id", false, 400));
+        }
+
+        try {
+            DB::beginTransaction();
+
+            Log::info("Update all the students with new councilor id " . $newCouncilor->councilorDetails->id);
+
+            $this->userRepository->transferStudents($oldCouncilor, $newCouncilor);
+
+            DB::commit();
+
+            return response(Utilities::getResponseMessage("Students transfered between councilor $oldCouncilor->email and $newCouncilor->email successfully", true, 200));
+
+
+        } catch (\Exception $e) {
+            //Roll back database if error
+            Log::error("Error while saving to database " . $e->getMessage());
+            DB::rollback();
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
 
     }
 
