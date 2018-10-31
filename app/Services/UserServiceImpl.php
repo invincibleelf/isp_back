@@ -43,7 +43,8 @@ class UserServiceImpl implements UserService
         $payerDetail->firstname = $credentials['firstName'];
         $payerDetail->middlename = array_key_exists('middleName', $credentials) ? $credentials['middleName'] : null;
         $payerDetail->lastname = $credentials['lastName'];
-        $payerDetail->chinese_name = array_key_exists('chineseName', $credentials) ? $credentials['chineseName'] : null;
+        $payerDetail->chinese_firstname = array_key_exists('chineseFirstName', $credentials) ? $credentials['chineseFirstName'] : null;
+        $payerDetail->chinese_lastname = array_key_exists('chineseLastName', $credentials) ? $credentials['chineseLastName'] : null;
         $payerDetail->dob = $credentials['dob'];
         $payerDetail->gender = array_key_exists("gender", $credentials) ? $credentials['gender'] : null;
         $payerDetail->national_id = $credentials['nationalId'];
@@ -70,7 +71,8 @@ class UserServiceImpl implements UserService
         $payer->payerDetails->firstname = $credentials['firstName'];
         $payer->payerDetails->lastname = $credentials['lastName'];
         $payer->payerDetails->middlename = array_key_exists('middleName', $credentials) ? $credentials['middleName'] : null;
-        $payer->payerDetails->middlename = array_key_exists('chineseName', $credentials) ? $credentials['chineseName'] : null;
+        $payer->payerDetails->chinese_firstname = array_key_exists('chineseFirstName', $credentials) ? $credentials['chineseFirstName'] : null;
+        $payer->payerDetails->chinese_lastname = array_key_exists('chineseLastName', $credentials) ? $credentials['chineseFirstName'] : null;
         $payer->payerDetails->dob = $credentials['dob'];
         $payer->payerDetails->gender = array_key_exists('gender', $credentials) ? $credentials['gender'] : null;
         $payer->payerDetails->bank_account_number = $credentials['bankAccountNumber'];
@@ -81,24 +83,6 @@ class UserServiceImpl implements UserService
         $payer->save();
 
         return $payer;
-    }
-
-    public function getFailureResponse($message, $code)
-    {
-        return [
-            'success' => false,
-            'message' => $message,
-            'status_code' => $code
-        ];
-    }
-
-    public function successMessage($message, $code)
-    {
-        return [
-            'success' => true,
-            'message' => $message,
-            'status_code' => $code
-        ];
     }
 
     public function createStudent($student, $credentials)
@@ -119,7 +103,8 @@ class UserServiceImpl implements UserService
         $studentDetail->firstname = $credentials['firstName'];
         $studentDetail->middlename = array_key_exists('middleName', $credentials) ? $credentials['middleName'] : null;
         $studentDetail->lastname = $credentials['lastName'];
-        $studentDetail->chinese_name = array_key_exists('chineseName', $credentials) ? $credentials['chineseName'] : null;
+        $studentDetail->chinese_firstname = array_key_exists('chineseFirstName', $credentials) ? $credentials['chineseLastName'] : null;
+        $studentDetail->chinese_lastname = array_key_exists('chineseFirstName', $credentials) ? $credentials['chineseLastName'] : null;
         $studentDetail->dob = $credentials['dob'];
         $studentDetail->gender = array_key_exists("gender", $credentials) ? $credentials['gender'] : null;
         $studentDetail->national_id = $credentials['nationalId'];
@@ -130,7 +115,6 @@ class UserServiceImpl implements UserService
 
         return $student;
     }
-
 
 
     public function createStudentAtBux($student)
@@ -151,8 +135,6 @@ class UserServiceImpl implements UserService
     }
 
 
-
-
     public function updateStudent($student, $credentials)
     {
         if (array_key_exists('countryCode', $credentials)) {
@@ -162,12 +144,12 @@ class UserServiceImpl implements UserService
         $student->studentDetails->firstname = $credentials['firstName'];
         $student->studentDetails->lastname = $credentials['lastName'];
         $student->studentDetails->middlename = array_key_exists('middleName', $credentials) ? $credentials['middleName'] : null;
-        $student->studentDetails->chinese_name = array_key_exists('chineseName', $credentials) ? $credentials['chineseName'] : null;
+        $student->studentDetails->chinese_firstname = array_key_exists('chineseFirstName', $credentials) ? $credentials['chineseFirstName'] : null;
+        $student->studentDetails->chinese_lastname = array_key_exists('chineseLastName', $credentials) ? $credentials['chineseLastName'] : null;
         $student->studentDetails->dob = $credentials['dob'];
         $student->studentDetails->gender = array_key_exists('gender', $credentials) ? $credentials['gender'] : null;
         $student->studentDetails->national_id = $credentials['nationalId'];
         $student->studentDetails->student_id_number = $credentials['studentIdNumber'];
-
         Log::info("Update Student with id " . $student->id);
         $student->save();
         $student->studentDetails->save();
@@ -209,10 +191,10 @@ class UserServiceImpl implements UserService
         return $contents;
     }
 
-    public function createCouncilor($councilor,$credentials)
+    public function createCouncilor($councilor, $credentials)
     {
-        if(array_key_exists('countryCode',$credentials)){
-            $councilor->phone = $credentials['countryCode'].$credentials['phone'];
+        if (array_key_exists('countryCode', $credentials)) {
+            $councilor->phone = $credentials['countryCode'] . $credentials['phone'];
         }
         $councilor->email = $credentials['email'];
         $councilor->password = bcrypt($credentials['password']);
@@ -238,7 +220,7 @@ class UserServiceImpl implements UserService
         return $councilor;
     }
 
-    public function updateCouncilor($councilor,$credentials)
+    public function updateCouncilor($councilor, $credentials)
     {
         $councilor->councilorDetails->firstname = $credentials['firstName'];
         $councilor->councilorDetails->lastname = $credentials['lastName'];
@@ -254,6 +236,7 @@ class UserServiceImpl implements UserService
 
         return $councilor;
     }
+
     public function createAgent($agent, $credentials)
     {
         if (array_key_exists('countryCode', $credentials)) {

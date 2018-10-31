@@ -59,14 +59,14 @@ class AuthController extends Controller
         $role = Role::where('name', $request['role'])->first();
 
         if ($role === null) {
-            return response($this->userService->getFailureResponse("Invalid role for registration", 400));
+            return response(Utilities::getResponseMessage("Invalid role for registration", false, 400));
         }
 
 
         switch ($role->name) {
-            case "student":
+            case "student";
 
-                $fields = ['firstName', 'lastName', 'middleName', 'chineseName', 'dob', 'email', 'gender', 'password', 'confirmPassword', 'phone', 'nationalId', 'role', 'studentIdNumber', 'countryCode'];
+                $fields = ['firstName', 'lastName', 'middleName', 'chineseFirstName', 'chineseLastName', 'dob', 'email', 'gender', 'password', 'confirmPassword', 'phone', 'nationalId', 'role', 'studentIdNumber', 'countryCode'];
                 // grab credentials from the request
                 $credentials = $request->only($fields);
 
@@ -76,7 +76,8 @@ class AuthController extends Controller
                         'firstName' => 'required|max:255',
                         'lastName' => 'required|max:255',
                         'middleName' => 'max:255',
-                        'chineseName'=>'max:255',
+                        'chineseFirstName' => 'max:255',
+                        'chineseLastName' => 'max:255',
                         'dob' => 'required',
                         'countryCode' => 'required_with:phone|numeric',
                         'phone' => 'required_with:countryCode|numeric',
@@ -90,7 +91,7 @@ class AuthController extends Controller
                 );
                 if ($validator->fails()) {
                     Log::error("Validation Error");
-                    return response($this->userService->getFailureResponse($validator->messages(), '400'));
+                    return response(Utilities::getResponseMessage($validator->messages(), false, '400'));
                 }
 
 
@@ -99,7 +100,7 @@ class AuthController extends Controller
                     $isValid = Utilities::validatePhoneNumber($credentials['countryCode'], $credentials['phone']);
                     if (!$isValid) {
                         Log::error("Phone number " . $credentials['phone'] . " is not valid ");
-                        return response($this->userService->getFailureResponse("Phone number " . $credentials['phone'] . " is not valid ", 400));
+                        return response(Utilities::getResponseMessage("Phone number " . $credentials['phone'] . " is not valid ", false, 400));
 
                     }
                 }
@@ -159,7 +160,7 @@ class AuthController extends Controller
                 );
                 if ($validator->fails()) {
                     Log::error("Validation Error");
-                    return response($this->userService->getFailureResponse($validator->messages(), '400'));
+                    return response(Utilities::getResponseMessage($validator->messages(), false, '400'));
                 }
 
 
@@ -168,7 +169,7 @@ class AuthController extends Controller
                     $isValid = Utilities::validatePhoneNumber($credentials['countryCode'], $credentials['phone']);
                     if (!$isValid) {
                         Log::error("Phone number " . $credentials['phone'] . " is not valid ");
-                        return response($this->userService->getFailureResponse("Phone number " . $credentials['phone'] . " is not valid ", 400));
+                        return response(Utilities::getResponseMessage("Phone number " . $credentials['phone'] . " is not valid ", false, 400));
 
                     }
                 }
@@ -177,7 +178,7 @@ class AuthController extends Controller
                     DB::beginTransaction();
                     $agent = new User();
 
-                    $user = $this->userService->createAgent($agent, $credentials);
+                    $agent = $this->userService->createAgent($agent, $credentials);
 
                     DB::commit();
 
@@ -199,11 +200,7 @@ class AuthController extends Controller
 
             default:
                 Log::error("Invalid Role for registration");
-                return response([
-                    'success' => false,
-                    'message' => "Invalid role for registration",
-                    'status_code' => 403
-                ]);
+                return response(Utilities::getResponseMessage('Invalid role for registration', false, 400));
                 break;
         }
         //Set up transaction querry in database
@@ -225,11 +222,7 @@ class AuthController extends Controller
 
         if ($validator->fails()) {
             Log::error("Validation Error");
-            return response([
-                'success' => false,
-                'message' => $validator->messages(),
-                'status_code' => 400
-            ]);
+            return response(Utilities::getResponseMessage($validator->messages(), false, '400'));
         }
 
         if (auth()->attempt($credentials)) {
@@ -245,11 +238,7 @@ class AuthController extends Controller
             }
         }
 
-        return response([
-            'success' => false,
-            'message' => "Invalid Credentials",
-            'status_code' => 403
-        ]);
+        return response(Utilities::getResponseMessage("Invalid credentials",false,400));
 
     }
 

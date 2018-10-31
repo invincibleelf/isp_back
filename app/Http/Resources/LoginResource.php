@@ -41,6 +41,9 @@ class LoginResource extends JsonResource
                 $details['firstName'] = $this->studentDetails->firstname;
                 $details['middleName'] = $this->studentDetails->middlename;
                 $details['lastName'] = $this->studentDetails->lastname;
+                $details['chineseFirstName'] = $this->studentDetails->chinese_firstname;
+                $details['chineseLastName'] = $this->studentDetails->chinese_lastname;
+                $details['lastName'] = $this->studentDetails->lastname;
                 $details['dob'] = $this->studentDetails->dob;
                 $details['gender'] = $this->studentDetails->gender;
                 $details['nationalId'] = $this->studentDetails->national_id;

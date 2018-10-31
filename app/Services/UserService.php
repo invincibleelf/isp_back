@@ -16,10 +16,6 @@ interface UserService
 
     public function updatePayer($payer,$credentials);
 
-    public function getFailureResponse($message,$code);
-
-    public function successMessage($message,$code);
-
     public function  createStudent($student,$credentials);
 
     public function createStudentAtBux($student);

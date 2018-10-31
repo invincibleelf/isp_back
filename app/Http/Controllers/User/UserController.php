@@ -10,6 +10,7 @@ use App\Services\UserService;
 use App\Utilities;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -53,7 +54,7 @@ class UserController extends Controller
         switch ($currentUser->role->name) {
             case 'student':
 
-                $fields = ['email', 'firstName', 'lastName', 'middleName', 'chineseName', 'dob', 'gender', 'phone', 'nationalId', 'studentIdNumber', 'countryCode'];
+                $fields = ['email', 'firstName', 'lastName', 'middleName', 'chineseFirstName', 'chineseLastName', 'dob', 'gender', 'phone', 'nationalId', 'studentIdNumber', 'countryCode'];
                 $credentials = $request->only($fields);
 
                 $validator = Validator::make(
@@ -62,7 +63,8 @@ class UserController extends Controller
                         'firstName' => 'required|max:255',
                         'lastName' => 'required|max:255',
                         'middleName' => 'max:255',
-                        'chineseName' => 'max:255',
+                        'chineseFirstName' => 'max:255',
+                        'chineseLastName' => 'max:255',
                         'dob' => 'required',
                         'countryCode' => 'required_with:phone|numeric',
                         'phone' => 'required_with:countryCode|numeric',
@@ -72,7 +74,7 @@ class UserController extends Controller
                 );
                 if ($validator->fails()) {
                     Log::error("Validation Error");
-                    return response($this->userService->getFailureResponse($validator->messages(), '400'));
+                    return response(Utilities::getResponseMessage($validator->messages(), false, '400'));
                 }
 
 
@@ -81,7 +83,7 @@ class UserController extends Controller
                     $isValid = Utilities::validatePhoneNumber($credentials['countryCode'], $credentials['phone']);
                     if (!$isValid) {
                         Log::error("Phone number " . $credentials['phone'] . " is not valid ");
-                        return response($this->userService->getFailureResponse("Phone number " . $credentials['phone'] . " is not valid ", 400));
+                        return response(Utilities::getResponseMessage("Phone number " . $credentials['phone'] . " is not valid ", false, 400));
 
                     }
                 }
@@ -130,7 +132,7 @@ class UserController extends Controller
                 );
                 if ($validator->fails()) {
                     Log::error("Validation Error");
-                    return response($this->userService->getFailureResponse($validator->messages(), '400'));
+                    return response(Utilities::getResponseMessage($validator->messages(), false, '400'));
                 }
 
 
@@ -139,7 +141,7 @@ class UserController extends Controller
                     $isValid = Utilities::validatePhoneNumber($credentials['countryCode'], $credentials['phone']);
                     if (!$isValid) {
                         Log::error("Phone number " . $credentials['phone'] . " is not valid ");
-                        return response($this->userService->getFailureResponse("Phone number " . $credentials['phone'] . " is not valid ", 400));
+                        return response(Utilities::getResponseMessage("Phone number " . $credentials['phone'] . " is not valid ", false, 400));
 
                     }
                 }
@@ -184,7 +186,7 @@ class UserController extends Controller
                 );
                 if ($validator->fails()) {
                     Log::error("Validation Error");
-                    return response($this->userService->getFailureResponse($validator->messages(), '400'));
+                    return response(Utilities::getResponseMessage($validator->messages(), false, '400'));
                 }
 
 
@@ -193,7 +195,7 @@ class UserController extends Controller
                     $isValid = Utilities::validatePhoneNumber($credentials['countryCode'], $credentials['phone']);
                     if (!$isValid) {
                         Log::error("Phone number " . $credentials['phone'] . " is not valid ");
-                        return response($this->userService->getFailureResponse("Phone number " . $credentials['phone'] . " is not valid ", 400));
+                        return response(Utilities::getResponseMessage("Phone number " . $credentials['phone'] . " is not valid ", false, 400));
 
                     }
                 }
@@ -219,11 +221,7 @@ class UserController extends Controller
 
             //TODO Logic if needed for other roles
             default:
-                return response([
-                    "success" => "false",
-                    "status_code" => "401",
-                    "message" => "Invalid User Role"
-                ]);
+                return response(Utilities::getResponseMessage("Invalid user role",false,400));
                 break;
 
 
