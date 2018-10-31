@@ -91,6 +91,8 @@ class PayerController extends Controller
                 return response(Utilities::getResponseMessage("Phone number " . $credentials['phone'] . " is not valid ", false, 400));
 
             }
+
+            $credentials['phone'] = Utilities::formatPhoneNumber($credentials['countryCode'], $credentials['phone']);
         }
 
         try {
@@ -193,6 +195,9 @@ class PayerController extends Controller
                 return response(Utilities::getResponseMessage("Phone number " . $credentials['phone'] . " is not valid ", false, 400));
 
             }
+
+            $credentials['phone'] = Utilities::formatPhoneNumber($credentials['countryCode'], $credentials['phone']);
+
         }
 
         try {

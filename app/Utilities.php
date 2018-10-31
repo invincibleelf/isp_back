@@ -5,6 +5,7 @@ namespace App;
 use function GuzzleHttp\default_ca_bundle;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
+use phpDocumentor\Reflection\Types\Boolean;
 
 
 class Utilities
@@ -38,13 +39,20 @@ class Utilities
         return $request;
     }
 
+    /**
+     * Function to validate the phone number.
+     *
+     * @param  String $code
+     * @param  String $phone
+     * @return bool
+     */
     public static function validatePhoneNumber($code, $phone)
     {
         $regex = "";
 
         switch ($code) {
             case Config::get('constants.country_codes.AU'):
-                $regex = "/^4[0-9]{8}$/";
+                $regex = "/^((04|4)[0-9]{8}$)/";
                 break;
             case Config::get('constants.country_codes.CH'):
                 $regex = "/^(13[0-9]|14[579]|15[0-3,5-9]|16[6]|17[0135678]|18[0-9]|19[89])\d{8}$/";
@@ -60,10 +68,13 @@ class Utilities
             return false;
         }
     }
+
     /**
-     * Store a newly created resource in storage.
+     * Function to get response message.
      *
-     * @param  String $message Boolean $success Boolean $code
+     * @param  String $message
+     * @param  bool $success
+     * @param  bool $code
      * @return array
      */
     public static function getResponseMessage($message, $success, $code)
@@ -73,6 +84,27 @@ class Utilities
             'message' => $message,
             'status_code' => $code
         ];
+    }
+
+    /**
+     * Function to format the mobile number.
+     *
+     * @param  String $code
+     * @param  String $phone
+     * @return String
+     */
+    public static function formatPhoneNumber($code, $phone)
+    {
+        switch ($code) {
+            case Config::get('constants.country_codes.AU'):
+                $phone = ltrim($phone, '0');
+                return $phone;
+                break;
+            case Config::get('constants.country_codes.CH'):
+                return $phone;
+                break;
+
+        }
     }
 
 }

@@ -10,7 +10,6 @@ use App\Services\UserService;
 use App\Utilities;
 
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -86,6 +85,8 @@ class UserController extends Controller
                         return response(Utilities::getResponseMessage("Phone number " . $credentials['phone'] . " is not valid ", false, 400));
 
                     }
+
+                    $credentials['phone'] = Utilities::formatPhoneNumber($credentials['countryCode'], $credentials['phone']);
                 }
 
 
@@ -144,6 +145,8 @@ class UserController extends Controller
                         return response(Utilities::getResponseMessage("Phone number " . $credentials['phone'] . " is not valid ", false, 400));
 
                     }
+
+                    $credentials['phone'] = Utilities::formatPhoneNumber($credentials['countryCode'], $credentials['phone']);
                 }
 
                 try {
@@ -198,6 +201,8 @@ class UserController extends Controller
                         return response(Utilities::getResponseMessage("Phone number " . $credentials['phone'] . " is not valid ", false, 400));
 
                     }
+
+                    $credentials['phone'] = Utilities::formatPhoneNumber($credentials['countryCode'], $credentials['phone']);
                 }
 
                 try {
