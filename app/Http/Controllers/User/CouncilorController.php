@@ -87,7 +87,7 @@ class CouncilorController extends Controller
 
         if ($validator->fails()) {
             Log::error("Validation Error");
-            return response($this->userService->getFailureResponse($validator->messages(), '400'));
+            return response(Utilities::getResponseMessage($validator->messages(), false, '400'));
         }
 
 
@@ -96,9 +96,10 @@ class CouncilorController extends Controller
             $isValid = Utilities::validatePhoneNumber($credentials['countryCode'], $credentials['phone']);
             if (!$isValid) {
                 Log::error("Phone number " . $credentials['phone'] . " is not valid ");
-                return response($this->userService->getFailureResponse("Phone number " . $credentials['phone'] . " is not valid ", 400));
+                return response(Utilities::getResponseMessage("Phone number " . $credentials['phone'] . " is not valid ", false, 400));
 
             }
+            $credentials['phone'] = Utilities::formatPhoneNumber($credentials['countryCode'], $credentials['phone']);
         }
 
         try {
@@ -136,7 +137,7 @@ class CouncilorController extends Controller
 
         if ($councilor == null) {
             Log::error("Councilor with id " . $id . " doesn't exist for " . $currentUser->email);
-            return response($this->userService->getFailureResponse("Councilor with id " . $id . " doesn't exist for " . $currentUser->email, 404));
+            return response(Utilities::getResponseMessage("Councilor with id " . $id . " doesn't exist for " . $currentUser->email, false, 404));
         } else {
             return response(new UserResource($councilor));
         }
@@ -158,7 +159,7 @@ class CouncilorController extends Controller
 
         if ($councilor == null) {
             Log::error("Councilor with id " . $id . " doesn't exist for " . $currentUser->email);
-            return response($this->userService->getFailureResponse("Student with id " . $id . " doesn't exist for " . $currentUser->email, 404));
+            return response(Utilities::getResponseMessage("Student with id " . $id . " doesn't exist for " . $currentUser->email, false, 404));
         }
 
         $fields = ['firstName', 'lastName', 'middleName', 'phone', 'nationalId', 'countryCode'];
@@ -178,7 +179,7 @@ class CouncilorController extends Controller
 
         if ($validator->fails()) {
             Log::error("Validation Error");
-            return response($this->userService->getFailureResponse($validator->messages(), '400'));
+            return response(Utilities::getResponseMessage($validator->messages(), false, '400'));
         }
 
 
@@ -187,9 +188,11 @@ class CouncilorController extends Controller
             $isValid = Utilities::validatePhoneNumber($credentials['countryCode'], $credentials['phone']);
             if (!$isValid) {
                 Log::error("Phone number " . $credentials['phone'] . " is not valid ");
-                return response($this->userService->getFailureResponse("Phone number " . $credentials['phone'] . " is not valid ", 400));
+                return response(Utilities::getResponseMessage("Phone number " . $credentials['phone'] . " is not valid ", false, 400));
 
             }
+
+            $credentials['phone'] = Utilities::formatPhoneNumber($credentials['countryCode'], $credentials['phone']);
         }
 
         try {
@@ -226,7 +229,7 @@ class CouncilorController extends Controller
 
         if ($councilor == null) {
             Log::error("Councilor with id " . $id . " doesn't exist for " . $currentUser->email);
-            return response($this->userService->getFailureResponse("Student with id " . $id . " doesn't exist for " . $currentUser->email, 404));
+            return response(Utilities::getResponseMessage("Student with id " . $id . " doesn't exist for " . $currentUser->email, false, 404));
         }
 
         try {
@@ -237,7 +240,7 @@ class CouncilorController extends Controller
 
             DB::commit();
 
-            return response($this->userService->successMessage("Councilor with id " . $councilor->id . " deleted successfully", 200));
+            return response(Utilities::getResponseMessage("Councilor with id " . $councilor->id . " deleted successfully", true, 200));
 
         } catch (\Exception $e) {
             //Roll back database if error

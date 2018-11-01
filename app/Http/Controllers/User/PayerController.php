@@ -57,7 +57,7 @@ class PayerController extends Controller
      */
     public function store(Request $request)
     {
-        $fields = ['firstName', 'lastName', 'middleName', 'chineseName', 'dob', 'email', 'gender', 'password', 'confirmPassword', 'phone', 'nationalId', 'url', 'countryCode', 'bankAccountNumber'];
+        $fields = ['firstName', 'lastName', 'middleName', 'chineseFirstName', 'chineseLastName', 'dob', 'email', 'gender', 'password', 'confirmPassword', 'phone', 'nationalId', 'url', 'countryCode', 'bankAccountNumber'];
         $credentials = $request->only($fields);
 
         $validator = Validator::make(
@@ -66,7 +66,8 @@ class PayerController extends Controller
                 'firstName' => 'required|max:255',
                 'lastName' => 'required|max:255',
                 'middleName' => 'max:255',
-                'chineseName' => 'max:255',
+                'chineseFirstName' => 'max:255',
+                'chineseLastName' => 'max:255',
                 'dob' => 'required',
                 'countryCode' => 'required_with:phone|numeric',
                 'phone' => 'required_with:countryCode|numeric',
@@ -80,16 +81,18 @@ class PayerController extends Controller
         );
         if ($validator->fails()) {
             Log::error("Validation Error");
-            return response($this->userService->getFailureResponse($validator->messages(), 400));
+            return response(Utilities::getResponseMessage($validator->messages(), false, 400));
         }
 
 
         if (array_key_exists('countryCode', $credentials)) {
             $isValid = Utilities::validatePhoneNumber($credentials['countryCode'], $credentials['phone']);
             if (!$isValid) {
-                return response($this->userService->getFailureResponse("Phone number " . $credentials['phone'] . " is not valid ", 400));
+                return response(Utilities::getResponseMessage("Phone number " . $credentials['phone'] . " is not valid ", false, 400));
 
             }
+
+            $credentials['phone'] = Utilities::formatPhoneNumber($credentials['countryCode'], $credentials['phone']);
         }
 
         try {
@@ -135,7 +138,7 @@ class PayerController extends Controller
         if ($payer == null) {
             Log::error("Payer with id " . $id . " doesn't exist for " . $currentUser->email);
 
-            return response($this->userService->getFailureResponse("Payer with id " . $id . " doesn't exist for " . $currentUser->email, 404));
+            return response(Utilities::getResponseMessage("Payer with id: $id doesn't exist for $currentUser->email", false, 404));
         }
 
         return response(new UserResource($payer));
@@ -158,22 +161,23 @@ class PayerController extends Controller
         if ($payer === null) {
             Log::error("Payer with id " . $id . " doesn't exist for " . $currentUser->email);
 
-            return response($this->userService->getFailureResponse("Payer with id " . $id . " doesn't exist for " . $currentUser->email, 404));
+            return response(Utilities::getResponseMessage("Payer with id: $id doesn't exist for $currentUser->email", false, 404));
         }
 
-        $fields = ['firstName', 'lastName', 'middleName', 'chineseName', 'dob', 'gender', 'phone', 'countryCode', 'bankAccountNumber', 'nationalId'];
+        $fields = ['firstName', 'lastName', 'middleName', 'chineseFirstName', 'chineseLastName', 'dob', 'gender', 'phone', 'countryCode', 'bankAccountNumber', 'nationalId'];
         $credentials = $request->only($fields);
 
         $validator = Validator::make(
             $credentials,
             [
-                'firstName' => 'required|max:255',
-                'lastName' => 'required|max:255',
+                'firstName' => 'required | max:255',
+                'lastName' => 'required | max:255',
                 'middleName' => 'max:255',
-                'chineseName' => 'max:255',
+                'chineseFirstName' => 'max:255',
+                'chineseLastName' => 'max:255',
                 'dob' => 'required',
-                'countryCode' => 'required_with:phone|numeric',
-                'phone' => 'required_with:countryCode|numeric',
+                'countryCode' => 'required_with:phone | numeric',
+                'phone' => 'required_with:countryCode | numeric',
                 'bankAccountNumber' => 'required',
                 'nationalId' => 'required'
 
@@ -181,16 +185,19 @@ class PayerController extends Controller
         );
         if ($validator->fails()) {
             Log::error("Validation Error");
-            return response($this->userService->getFailureResponse($validator->messages(), 400));
+            return response(Utilities::getResponseMessage($validator->messages(), false, 400));
         }
 
 
         if (array_key_exists('countryCode', $credentials)) {
             $isValid = Utilities::validatePhoneNumber($credentials['countryCode'], $credentials['phone']);
             if (!$isValid) {
-                return response($this->userService->getFailureResponse("Phone number " . $credentials['phone'] . " is not valid ", 400));
+                return response(Utilities::getResponseMessage("Phone number " . $credentials['phone'] . " is not valid ", false, 400));
 
             }
+
+            $credentials['phone'] = Utilities::formatPhoneNumber($credentials['countryCode'], $credentials['phone']);
+
         }
 
         try {
@@ -228,18 +235,18 @@ class PayerController extends Controller
         if ($payer == null) {
             Log::error("Payer with id " . $id . " doesn't exist for " . $currentUser->email);
 
-            return response($this->userService->getFailureResponse("Payer with id " . $id . " doesn't exist for " . $currentUser->email, 404));
+            return response(Utilities::getResponseMessage("Payer with id " . $id . " doesn't exist for " . $currentUser->email, false, 404));
         }
 
         try {
             DB::beginTransaction();
 
-            $payer->status = Config::get('enums.status.DELETED');
+            $payer->status = Config::get('enums . status . DELETED');
             $payer->save();
 
             DB::commit();
 
-            return response($this->userService->successMessage("Payer deleted successfully", 200));
+            return response(Utilities::getResponseMessage("Payer deleted successfully", true, 200));
         } catch (\Exception $e) {
             //Roll back database if error
             Log::error("Error while saving to database. " . $e->getMessage());

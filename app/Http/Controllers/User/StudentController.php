@@ -68,7 +68,7 @@ class StudentController extends Controller
 
         Log::info("Create student by councilor with email " . $currentUser->email);
 
-        $fields = ['firstName', 'lastName', 'middleName', 'chineseName', 'dob', 'email', 'gender', 'password', 'confirmPassword', 'phone', 'nationalId', 'studentIdNumber', 'url', 'countryCode'];
+        $fields = ['firstName', 'lastName', 'middleName', 'chineseFirstName', 'chineseLastName', 'dob', 'email', 'gender', 'password', 'confirmPassword', 'phone', 'nationalId', 'studentIdNumber', 'url', 'countryCode'];
         $credentials = $request->only($fields);
 
         $validator = Validator::make(
@@ -77,7 +77,8 @@ class StudentController extends Controller
                 'firstName' => 'required|max:255',
                 'lastName' => 'required|max:255',
                 'middleName' => 'max:255',
-                'chineseName' => 'max:255',
+                'chineseFirstName' => 'max:255',
+                'chineseLastName' => 'max:255',
                 'dob' => 'required',
                 'countryCode' => 'required_with:phone|numeric',
                 'phone' => 'required_with:countryCode|numeric',
@@ -91,7 +92,7 @@ class StudentController extends Controller
         );
         if ($validator->fails()) {
             Log::error("Validation Error");
-            return response($this->userService->getFailureResponse($validator->messages(), '400'));
+            return response(Utilities::getResponseMessage($validator->messages(), false, '400'));
         }
 
 
@@ -100,9 +101,11 @@ class StudentController extends Controller
             $isValid = Utilities::validatePhoneNumber($credentials['countryCode'], $credentials['phone']);
             if (!$isValid) {
                 Log::error("Phone number " . $credentials['phone'] . " is not valid ");
-                return response($this->userService->getFailureResponse("Phone number " . $credentials['phone'] . " is not valid ", 400));
+                return response(Utilities::getResponseMessage("Phone number " . $credentials['phone'] . " is not valid ", false, 400));
 
             }
+
+            $credentials['phone'] = Utilities::formatPhoneNumber($credentials['countryCode'], $credentials['phone']);
         }
 
         try {
@@ -157,7 +160,7 @@ class StudentController extends Controller
 
         if ($student == null) {
             Log::error("Student with id " . $id . " doesn't exist for " . $currentUser->email);
-            return response($this->userService->getFailureResponse("Student with id " . $id . " doesn't exist for " . $currentUser->email, 404));
+            return response(Utilities::getResponseMessage("Student with id " . $id . " doesn't exist for " . $currentUser->email, false, 404));
         } else {
             return response(new UserResource($student));
         }
@@ -178,10 +181,10 @@ class StudentController extends Controller
         $student = $this->userRepository->getStudentByIdAndCurrentUser($id, $currentUser);
         if ($student == null) {
             Log::error("Student with id " . $id . " doesn't exist for " . $currentUser->email);
-            return response($this->userService->getFailureResponse("Student with id " . $id . " doesn't exist for " . $currentUser->email, 404));
+            return response(Utilities::getResponseMessage("Student with id " . $id . " doesn't exist for " . $currentUser->email, false, 404));
         }
 
-        $fields = ['firstName', 'lastName', 'middleName', 'chineseName', 'dob', 'gender', 'phone', 'nationalId', 'studentIdNumber', 'countryCode'];
+        $fields = ['firstName', 'lastName', 'middleName', 'chineseFirstName', 'chineseLastName', 'dob', 'gender', 'phone', 'nationalId', 'studentIdNumber', 'countryCode'];
         $credentials = $request->only($fields);
 
         $validator = Validator::make(
@@ -190,7 +193,8 @@ class StudentController extends Controller
                 'firstName' => 'required|max:255',
                 'lastName' => 'required|max:255',
                 'middleName' => 'max:255',
-                'chineseName' => 'max:255',
+                'chineseFirstName' => 'max:255',
+                'chineseLastName' => 'max:255',
                 'dob' => 'required',
                 'gender' => 'required',
                 'countryCode' => 'required_with:phone|numeric',
@@ -202,7 +206,7 @@ class StudentController extends Controller
 
         if ($validator->fails()) {
             Log::error("Validation Error");
-            return response($this->userService->getFailureResponse($validator->messages(), '400'));
+            return response(Utilities::getResponseMessage($validator->messages(), false, '400'));
         }
 
         Log::info("Validate mobile number");
@@ -210,9 +214,11 @@ class StudentController extends Controller
             $isValid = Utilities::validatePhoneNumber($credentials['countryCode'], $credentials['phone']);
             if (!$isValid) {
                 Log::error("Phone number " . $credentials['phone'] . " is not valid ");
-                return response($this->userService->getFailureResponse("Phone number " . $credentials['phone'] . " is not valid ", 400));
+                return response(Utilities::getResponseMessage("Phone number " . $credentials['phone'] . " is not valid ", false, 400));
 
             }
+
+            $credentials['phone'] = Utilities::formatPhoneNumber($credentials['countryCode'], $credentials['phone']);
         }
 
         try {
@@ -252,7 +258,7 @@ class StudentController extends Controller
 
         if ($student == null) {
             Log::error("Student with id " . $id . " doesn't exist for " . $currentUser->email);
-            return response($this->userService->getFailureResponse("Student with id " . $id . " doesn't exist for " . $currentUser->email, 404));
+            return response(Utilities::getResponseMessage("Student with id " . $id . " doesn't exist for " . $currentUser->email, false, 404));
         }
 
         try {
@@ -272,11 +278,7 @@ class StudentController extends Controller
             DB::commit();
 
 
-            return response([
-                "status" => true,
-                "status_code" => 200,
-                "message" => "Councilor with id " . $student->id . " deleted successfully"
-            ]);
+            return response(Utilities::getResponseMessage("Student with id $id deleted successfully", true, 200));
 
 
         } catch (\Exception $e) {
