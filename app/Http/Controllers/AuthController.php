@@ -129,7 +129,8 @@ class AuthController extends Controller
                         "success" => true,
                         "status_code" => 200,
                         "email" => $student->email,
-                        "role" => $student->role->name
+                        "role" => $student->role->name,
+                        "token" => $this->tokenFromUser($student->id)
                     ]);
                 } catch (\Exception $e) {
                     //Roll back database if error
@@ -242,7 +243,7 @@ class AuthController extends Controller
             }
         }
 
-        return response(Utilities::getResponseMessage("Invalid credentials",false,400));
+        return response(Utilities::getResponseMessage("Invalid credentials", false, 400));
 
     }
 

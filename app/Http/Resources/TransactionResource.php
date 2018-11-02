@@ -4,7 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class Transaction extends JsonResource
+class TransactionResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -19,7 +19,9 @@ class Transaction extends JsonResource
         $details['id'] = $this->id;
         $details['transactionSN'] = $this->transaction_sn;
         $details['amount'] = $this->amount;
-
+        $details['merchant'] = $this->merchant;
+        $details['services'] = json_decode($this->service_ids);
+        $details['status'] = $this->status;
         $details['student'] = $this->getStudentInfo();
 
         if($this->payer !== null){
@@ -52,7 +54,6 @@ class Transaction extends JsonResource
         $payer["id"] = $this->payer->user->id;
         $payer['email'] = $this->payer->user->email;
         $payer['phone'] = $this->payer->user->phone;
-
         $payer['firstName'] = $this->payer->firstname;
         $payer['middleName'] = $this->payer->middlename;
         $payer['lastName'] = $this->payer->lastname;

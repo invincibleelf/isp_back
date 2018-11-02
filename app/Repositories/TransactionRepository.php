@@ -12,5 +12,7 @@ interface TransactionRepository
 
     public function getTransactionById($id);
 
+    public function getTransactionByTransactionSN($transactionSN);
+
    
 }

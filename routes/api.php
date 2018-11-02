@@ -79,7 +79,7 @@ Route::post('/change-password', [
 Route::get('/showProfile', [
     'uses' => 'User\UserController@showProfile',
     'middleware' => ['api', 'roles'],
-    'role' => ['student', 'agent', 'councilor']
+    'role' => ['student', 'agent', 'councilor','payer']
 ]);
 
 Route::put('/updateProfile', [
@@ -136,7 +136,7 @@ Route::apiResource('merchant', 'MerchantController')->only(['index', 'show', 'up
  *
  */
 
-Route::apiResource('transaction', 'TransactionController')->only(['index'])->middleware('roles');
+Route::apiResource('transaction', 'TransactionController')->middleware('roles');
 
 Route::get('transaction/student/{id}', 'TransactionController@transactionsByStudent')->middleware('api', 'roles:agent,councilor');
 

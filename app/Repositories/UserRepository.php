@@ -27,4 +27,9 @@ interface UserRepository
     public function getVerifiedCouncilorByIdAndStatusAndCurrentAgent($id, $status, $currentAgent);
 
     public function transferStudents($oilCouncilor,$newCouncilor);
+
+    public function getStudentByPayer($payer);
+
+    public function getUserByStudentDetailsId($studentDetailsId);
+
 }

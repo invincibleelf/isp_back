@@ -16,5 +16,9 @@ class Transaction extends Model
         return $this->belongsTo('App\PayerDetail','payer_id');
     }
 
+    public function merchant(){
+        return $this->belongsTo('App\Models\Merchant', 'merchant_id');
+    }
+
    
 }

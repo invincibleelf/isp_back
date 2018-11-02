@@ -107,4 +107,14 @@ class Utilities
         }
     }
 
+    public static function validateTotalPaymentAmount($services)
+    {
+        $sum = 0;
+        foreach ($services as $service) {
+            $sum += $service['amount'];
+
+        }
+        return $sum;
+    }
+
 }

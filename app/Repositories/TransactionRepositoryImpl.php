@@ -63,4 +63,12 @@ class TransactionRepositoryImpl implements TransactionRepository
 
         return $transaction;
     }
+
+    public function getTransactionByTransactionSN($transactionSN)
+    {
+        $transaction = Transaction::with('payer','student')->where('transaction_sn',$transactionSN)->first();
+
+        return $transaction;
+    }
+
 }

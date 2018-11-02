@@ -13,6 +13,12 @@ return[
         'DELETED'=>2,
 
 
+    ],
+    't_status' =>[
+        'INITIATED'=>0,
+        'PROCESSING'=>1,
+        'CONFIRMED'=>2,
+        'REJECTED'=>3
     ]
 ]
 ?>
