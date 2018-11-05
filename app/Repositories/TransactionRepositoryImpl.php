@@ -36,11 +36,11 @@ class TransactionRepositoryImpl implements TransactionRepository
                 break;
 
             case "student":
-                $transactions = Transaction::with( 'payer')->where('student_id', '=', $currentUser->studentDetails->id)->get();
+                $transactions = Transaction::with('payer')->where('student_id', '=', $currentUser->studentDetails->id)->get();
                 break;
 
             case "payer":
-                $transactions = Transaction::with( 'student')->where('payer_id', '=', $currentUser->payerDetails->id)->get();
+                $transactions = Transaction::with('student')->where('payer_id', '=', $currentUser->payerDetails->id)->get();
                 break;
         }
 
@@ -48,10 +48,10 @@ class TransactionRepositoryImpl implements TransactionRepository
 
     }
 
-    public function getTransactionsByStudent($student,$currentUser)
+    public function getTransactionsByStudent($student, $currentUser)
     {
 
-        $transactions = Transaction::with('student','payer')->where('student_id','=',$student->studentDetails->id)->get();
+        $transactions = Transaction::with('student', 'payer')->where('student_id', '=', $student->studentDetails->id)->get();
 
         return $transactions;
     }
@@ -59,14 +59,14 @@ class TransactionRepositoryImpl implements TransactionRepository
 
     public function getTransactionById($id)
     {
-        $transaction = Transaction::with('student','payer')->find($id);
+        $transaction = Transaction::with('student', 'payer')->find($id);
 
         return $transaction;
     }
 
-    public function getTransactionByTransactionSN($transactionSN)
+    public function getTransactionByTransactionSNAndStudentId($transactionSN, $studentId)
     {
-        $transaction = Transaction::with('payer','student')->where('transaction_sn',$transactionSN)->first();
+        $transaction = Transaction::with('payer', 'student')->where('transaction_sn', $transactionSN)->where('student_id', '=', $studentId)->first();
 
         return $transaction;
     }

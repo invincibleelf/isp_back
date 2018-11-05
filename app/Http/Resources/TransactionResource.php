@@ -9,7 +9,7 @@ class TransactionResource extends JsonResource
     /**
      * Transform the resource into an array.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \Illuminate\Http\Request $request
      * @return array
      */
     public function toArray($request)
@@ -24,14 +24,24 @@ class TransactionResource extends JsonResource
         $details['status'] = $this->status;
         $details['student'] = $this->getStudentInfo();
 
-        if($this->payer !== null){
+        if ($this->payer !== null) {
             $details['payer'] = $this->getPayerInfo();
+        }
+
+        if ($this->payment_info !== null) {
+            $details['paymentMethod'] = $this->getPaymentMethodInfo();
+        }
+
+        if ($this->pay_time !== null) {
+
+            $details['paymentTime'] = $this->pay_time->format('M j Y g:i A');
         }
 
         return $details;
     }
 
-    protected function getStudentInfo(){
+    protected function getStudentInfo()
+    {
 
         //@id should always be the id of the User model
         $student["id"] = $this->student->user->id;
@@ -48,7 +58,8 @@ class TransactionResource extends JsonResource
         return $student;
     }
 
-    protected function getPayerInfo(){
+    protected function getPayerInfo()
+    {
 
         //@id should always be the id of the User model
         $payer["id"] = $this->payer->user->id;
@@ -62,5 +73,12 @@ class TransactionResource extends JsonResource
         $payer['nationalId'] = $this->payer->national_id;
 
         return $payer;
+    }
+
+    protected function getPaymentMethodInfo()
+    {
+        $paymentMethod['id'] = $this->paymentMethod->id;
+        $paymentMethod['name'] = $this->paymentMethod->name;
+        return $paymentMethod;
     }
 }

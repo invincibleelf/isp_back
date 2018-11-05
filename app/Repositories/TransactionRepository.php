@@ -8,11 +8,11 @@ interface TransactionRepository
 
     public function getTransactionsByCurrentUser($currentUser);
 
-    public function getTransactionsbyStudent($student,$currentUser);
+    public function getTransactionsbyStudent($student, $currentUser);
 
     public function getTransactionById($id);
 
-    public function getTransactionByTransactionSN($transactionSN);
+    public function getTransactionByTransactionSNAndStudentId($transactionSN, $studentId);
 
-   
+
 }

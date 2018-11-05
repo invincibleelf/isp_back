@@ -5,17 +5,16 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\TransactionResource;
 use App\Http\Resources\TransactionResourceCollection;
+use App\Models\PaymentMethod;
 use App\Repositories\MerchantRepository;
 use App\Repositories\TransactionRepository;
 use App\Repositories\UserRepository;
 use App\Services\EmailService;
 use App\Services\TransactionService;
-use App\User;
 use App\Utilities;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -175,11 +174,11 @@ class TransactionController extends Controller
             $transaction = new \App\Transaction();
             $transaction = $this->transactionService->createTransaction($transaction, $credentials, $student, $merchant);
 
-            $responseBux = $this->transactionService->createTransactionAtBux($transaction);
+//            $responseBux = $this->transactionService->createTransactionAtBux($transaction);
 
             DB::commit();
 
-            if($currentUser->role->name == "councilor"){
+            if ($currentUser->role->name == "councilor") {
                 $this->emailService->sendEmailToConfirmPayment($student, $credentials['url']);
             }
 
@@ -202,12 +201,15 @@ class TransactionController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $fields = ['payerId'];
+        $currentUser = Auth::user();
+        Log::info("Update transaction with transction SN $id by user $currentUser->email");
+        $fields = ['payerId', 'paymentMethodId'];
         $credentials = $request->only($fields);
 
         $validator = Validator::make($credentials,
             [
-                "payerId" => "required"
+                "payerId" => "required",
+                "paymentMethodId" => "required"
             ]);
 
         if ($validator->fails()) {
@@ -215,15 +217,17 @@ class TransactionController extends Controller
             return response(Utilities::getResponseMessage($validator->messages(), false, '400'));
         }
 
-        $transaction = $this->transctionRepository->getTransactionByTransactionSN($id);
+        $transaction = $this->transctionRepository->getTransactionByTransactionSNAndStudentId($id, $currentUser->studentDetails->id);
 
         if (!$transaction) {
-            return response(Utilities::getResponseMessage("Transaction with id $id doesn't exist", false, 400));
+            Log::error("Transaction with id $id doesn't exist for student $currentUser->email");
+            return response(Utilities::getResponseMessage("Transaction with id $id doesn't exist for student $currentUser->email", false, 400));
         }
 
         $student = $this->userRepository->getUserByStudentDetailsId($transaction->student_id);
 
         if (!$student) {
+            Log::error("Student with id $transaction->student_id doesn't exist");
             return response(Utilities::getResponseMessage("Student with id $transaction->student_id doesn't exist", false, 400));
         }
 
@@ -231,7 +235,14 @@ class TransactionController extends Controller
 
         if (!$payer) {
             Log::info("Payer with id " . $credentials['payerId'] . " doesn't exist for student with id $transaction->student_id");
-            return response(Utilities::getResponseMessage("Payer with id " . $credentials['payerId'] . " doesn't exist", false, 400));
+            return response(Utilities::getResponseMessage("Payer with id " . $credentials['payerId'] . " doesn't exist for student", false, 400));
+        }
+
+        $paymentMethod = PaymentMethod::find($credentials['paymentMethodId']);
+
+        if (!$paymentMethod) {
+            Log::info("Payment method with id " . $credentials['paymentMethodId'] . " doesn't exist");
+            return response(Utilities::getResponseMessage("Invalid Payment Method", false, 400));
         }
 
 
@@ -239,9 +250,11 @@ class TransactionController extends Controller
 
             DB::beginTransaction();
 
-            $transaction->payer()->associate($payer->payerDetails);
+            $transaction = $this->transactionService->updateTransaction($transaction, $credentials, $payer, $paymentMethod);
 
-            $transaction->save();
+
+
+            $responseBux = $this->transactionService->createTransactionAtBux($transaction);
             DB::commit();
 
             return response(new TransactionResource($transaction));

@@ -8,7 +8,7 @@
 
 namespace App\Services;
 
-use App\Utilities;
+use DateTime;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Log;
 class TransactionServiceImpl implements TransactionService
 {
 
-    public function createTransaction($transaction, $credentials, $student,$merchant)
+    public function createTransaction($transaction, $credentials, $student, $merchant)
     {
         Log::info("Create Transaction for student $student->email");
         $transaction->amount = $credentials['totalAmount'];
@@ -54,6 +54,18 @@ class TransactionServiceImpl implements TransactionService
         //$contents = json_decode($buxResponse->getBody());
 
 
+    }
+
+    public function updateTransaction($transaction, $credentials, $payer, $paymentMethod)
+    {
+        $transaction->status = Config::get('enums.t_status.PROCESSING');
+        $transaction->pay_time = new DateTime();
+        $transaction->payer()->associate($payer->payerDetails);
+        $transaction->paymentMethod()->associate($paymentMethod);
+
+        $transaction->save();
+
+        return $transaction;
     }
 
 

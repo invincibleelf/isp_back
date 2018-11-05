@@ -10,6 +10,9 @@ return [
         'CH'=>86,
         'IN'=>91,
 
+    ],
+    'link'=>[
+        'transaction_status'=>"ajslakjd/slsdk" // Add link to email
     ]
 ];
 ?>
