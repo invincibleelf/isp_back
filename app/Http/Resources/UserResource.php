@@ -69,8 +69,8 @@ class UserResource extends JsonResource
                 $details['firstName'] = $this->payerDetails->firstname;
                 $details['middleName'] = $this->payerDetails->middlename;
                 $details['lastName'] = $this->payerDetails->lastname;
-                $details['chineseFirstName'] = $this->studentDetails->chinese_firstname;
-                $details['chineseLastName'] = $this->studentDetails->chinese_lastname;
+                $details['chineseFirstName'] = $this->payerDetails->chinese_firstname;
+                $details['chineseLastName'] = $this->payerDetails->chinese_lastname;
                 $details['dob'] = $this->payerDetails->dob;
                 $details['gender'] = $this->payerDetails->gender;
                 $details['nationalId'] = $this->payerDetails->national_id;

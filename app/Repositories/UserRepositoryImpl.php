@@ -111,5 +111,23 @@ class UserRepositoryImpl implements UserRepository
         })->update(["councilor_id" => $newCouncilor->councilorDetails->id]);
     }
 
+    public function getStudentByPayer($payer)
+    {
+        $student = User::with('studentDetails')->whereHas('studentDetails',function ($q) use ($payer){
+            $q->where('id',$payer->payerDetails->student_id);
+        })->first();
+
+        return $student;
+    }
+
+
+    public function getUserByStudentDetailsId($studentDetailsId){
+        $student = User::with('studentDetails')->whereHas('studentDetails', function ($q) use ($studentDetailsId) {
+            $q->where('id',$studentDetailsId);
+        })->first();
+
+        return $student;
+    }
+
 
 }

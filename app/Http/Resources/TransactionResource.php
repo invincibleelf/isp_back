@@ -4,12 +4,12 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class Transaction extends JsonResource
+class TransactionResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \Illuminate\Http\Request $request
      * @return array
      */
     public function toArray($request)
@@ -19,17 +19,29 @@ class Transaction extends JsonResource
         $details['id'] = $this->id;
         $details['transactionSN'] = $this->transaction_sn;
         $details['amount'] = $this->amount;
-
+        $details['merchant'] = $this->merchant;
+        $details['services'] = json_decode($this->service_ids);
+        $details['status'] = $this->status;
         $details['student'] = $this->getStudentInfo();
 
-        if($this->payer !== null){
+        if ($this->payer !== null) {
             $details['payer'] = $this->getPayerInfo();
+        }
+
+        if ($this->payment_info !== null) {
+            $details['paymentMethod'] = $this->getPaymentMethodInfo();
+        }
+
+        if ($this->pay_time !== null) {
+
+            $details['paymentTime'] = $this->pay_time->format('M j Y g:i A');
         }
 
         return $details;
     }
 
-    protected function getStudentInfo(){
+    protected function getStudentInfo()
+    {
 
         //@id should always be the id of the User model
         $student["id"] = $this->student->user->id;
@@ -46,13 +58,13 @@ class Transaction extends JsonResource
         return $student;
     }
 
-    protected function getPayerInfo(){
+    protected function getPayerInfo()
+    {
 
         //@id should always be the id of the User model
         $payer["id"] = $this->payer->user->id;
         $payer['email'] = $this->payer->user->email;
         $payer['phone'] = $this->payer->user->phone;
-
         $payer['firstName'] = $this->payer->firstname;
         $payer['middleName'] = $this->payer->middlename;
         $payer['lastName'] = $this->payer->lastname;
@@ -61,5 +73,12 @@ class Transaction extends JsonResource
         $payer['nationalId'] = $this->payer->national_id;
 
         return $payer;
+    }
+
+    protected function getPaymentMethodInfo()
+    {
+        $paymentMethod['id'] = $this->paymentMethod->id;
+        $paymentMethod['name'] = $this->paymentMethod->name;
+        return $paymentMethod;
     }
 }
