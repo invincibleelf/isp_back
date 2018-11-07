@@ -14,5 +14,7 @@ interface TransactionRepository
 
     public function getTransactionByTransactionSNAndStudentId($transactionSN, $studentId);
 
+    public function getTransctionsByFavouriteIds($favouriteIds);
+
 
 }

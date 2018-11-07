@@ -141,5 +141,12 @@ Route::apiResource('transaction', 'TransactionController')->middleware('roles');
 Route::get('transaction/student/{id}', 'TransactionController@transactionsByStudent')->middleware('api', 'roles:agent,councilor');
 
 
+/*
+ * Routes for Managing Favourite Transactions
+ *
+ *
+ *
+ */
+Route::apiResource('favourite/transaction','FavouriteController')->only('index','store','destroy')->middleware('roles:student');
 
 

@@ -71,4 +71,11 @@ class TransactionRepositoryImpl implements TransactionRepository
         return $transaction;
     }
 
+    public function getTransctionsByFavouriteIds($favouriteIds)
+    {
+        $transaction = Transaction::whereIn('id', $favouriteIds)->get();
+        return $transaction;
+    }
+
+
 }

@@ -8,6 +8,7 @@
 
 namespace App\Services;
 
+use App\Models\Favourite;
 use DateTime;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Config;
@@ -66,6 +67,19 @@ class TransactionServiceImpl implements TransactionService
         $transaction->save();
 
         return $transaction;
+    }
+
+    public function addTransactionToFavourites($transaction, $currentUser)
+    {
+        $favourite = new Favourite();
+
+        $favourite->transaction()->associate($transaction);
+
+        $favourite->user()->associate($currentUser);
+
+        $favourite->save();
+
+        return $favourite;
     }
 
 

@@ -35,22 +35,27 @@ class Transaction extends Model
         return $this->belongsTo('App\Models\PaymentMethod', 'payment_method_id');
     }
 
+    public function favourite()
+    {
+        return $this->hasOne('App\Models\Favourite');
+    }
+
 
     public static function boot()
     {
         parent::boot();
-/**
- * Notification to the Student for any changes to the status of transaction
- *
- * @param Transaction $transaction
- *
- **/
+        /**
+         * Notification to the Student for any changes to the status of transaction
+         *
+         * @param Transaction $transaction
+         *
+         **/
         static::updated(function ($transaction) {
             $changes = $transaction->getDirty();
 
-            if (array_key_exists('status',$changes)) {
-                Log::info("Status has changed to ".$changes['status']);
-                $transaction->notify(new SendPaymentStatusChangeNotification($transaction,Config::get('constants.link.transaction_status')));
+            if (array_key_exists('status', $changes)) {
+                Log::info("Status has changed to " . $changes['status']);
+                $transaction->notify(new SendPaymentStatusChangeNotification($transaction, Config::get('constants.link.transaction_status')));
             }
 
 
@@ -65,8 +70,8 @@ class Transaction extends Model
      */
     public function routeNotificationForMail($notification)
     {
-        $user = User::whereHas('studentDetails',function ($q){
-            $q->where('id',$this->student_id);
+        $user = User::whereHas('studentDetails', function ($q) {
+            $q->where('id', $this->student_id);
         })->first();
 
         Log::info("Email address is $user->email");
