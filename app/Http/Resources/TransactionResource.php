@@ -34,7 +34,7 @@ class TransactionResource extends JsonResource
 
         if ($this->pay_time !== null) {
 
-            $details['paymentTime'] = $this->pay_time->format('M j Y g:i A');
+            $details['paymentTime'] = $this->pay_time;
         }
 
         return $details;

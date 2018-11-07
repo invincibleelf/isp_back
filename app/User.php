@@ -36,7 +36,7 @@ class User extends Authenticatable
 
     public function role()
     {
-        return $this->belongsTo('App\Role','role_id');
+        return $this->belongsTo('App\Role', 'role_id');
     }
 
 
@@ -83,5 +83,10 @@ class User extends Authenticatable
     public function payerDetails()
     {
         return $this->hasOne('App\PayerDetail');
+    }
+
+    public function favourites()
+    {
+        return $this->hasMany('App\Models\Favourite');
     }
 }

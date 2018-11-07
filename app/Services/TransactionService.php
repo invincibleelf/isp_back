@@ -17,4 +17,6 @@ interface TransactionService
     public function createTransactionAtBux($transaction);
 
     public function updateTransaction($transaction, $credentials, $payer, $paymentMethod);
+
+    public function addTransactionToFavourites($transaction, $currentUser);
 }
