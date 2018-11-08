@@ -81,7 +81,6 @@ class LoginResource extends JsonResource
                 $details['dob'] = $this->payerDetails->dob;
                 $details['gender'] = $this->payerDetails->gender;
                 $details['nationalId'] = $this->payerDetails->national_id;
-                $details["bankAccountNumber"] = $this->payerDetails->bank_account_number;
                 break;
 
 

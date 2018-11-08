@@ -57,7 +57,7 @@ class PayerController extends Controller
      */
     public function store(Request $request)
     {
-        $fields = ['firstName', 'lastName', 'middleName', 'chineseFirstName', 'chineseLastName', 'dob', 'email', 'gender', 'password', 'confirmPassword', 'phone', 'nationalId', 'url', 'countryCode', 'bankAccountNumber'];
+        $fields = ['firstName', 'lastName', 'middleName', 'chineseFirstName', 'chineseLastName', 'dob', 'email', 'gender', 'password', 'confirmPassword', 'phone', 'nationalId', 'url', 'countryCode'];
         $credentials = $request->only($fields);
 
         $validator = Validator::make(
@@ -75,8 +75,7 @@ class PayerController extends Controller
                 'nationalId' => 'required',
                 'password' => 'required|min:6',
                 'confirmPassword' => 'required_with:password|same:password',
-                'url' => 'required|url',
-                'bankAccountNumber' => 'required'
+                'url' => 'required|url'
             ]
         );
         if ($validator->fails()) {
@@ -164,7 +163,7 @@ class PayerController extends Controller
             return response(Utilities::getResponseMessage("Payer with id: $id doesn't exist for $currentUser->email", false, 404));
         }
 
-        $fields = ['firstName', 'lastName', 'middleName', 'chineseFirstName', 'chineseLastName', 'dob', 'gender', 'phone', 'countryCode', 'bankAccountNumber', 'nationalId'];
+        $fields = ['firstName', 'lastName', 'middleName', 'chineseFirstName', 'chineseLastName', 'dob', 'gender', 'phone', 'countryCode', 'nationalId'];
         $credentials = $request->only($fields);
 
         $validator = Validator::make(
@@ -178,7 +177,6 @@ class PayerController extends Controller
                 'dob' => 'required',
                 'countryCode' => 'required_with:phone | numeric',
                 'phone' => 'required_with:countryCode | numeric',
-                'bankAccountNumber' => 'required',
                 'nationalId' => 'required'
 
             ]

@@ -48,7 +48,6 @@ class UserServiceImpl implements UserService
         $payerDetail->dob = $credentials['dob'];
         $payerDetail->gender = array_key_exists("gender", $credentials) ? $credentials['gender'] : null;
         $payerDetail->national_id = $credentials['nationalId'];
-        $payerDetail->bank_account_number = $credentials['bankAccountNumber'];
 
         $payerDetail->student()->associate(Auth::user()->studentDetails);
 
@@ -75,7 +74,6 @@ class UserServiceImpl implements UserService
         $payer->payerDetails->chinese_lastname = array_key_exists('chineseLastName', $credentials) ? $credentials['chineseFirstName'] : null;
         $payer->payerDetails->dob = $credentials['dob'];
         $payer->payerDetails->gender = array_key_exists('gender', $credentials) ? $credentials['gender'] : null;
-        $payer->payerDetails->bank_account_number = $credentials['bankAccountNumber'];
         $payer->payerDetails->national_id = $credentials['nationalId'];
 
         $payer->payerDetails->save();
