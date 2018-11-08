@@ -37,6 +37,10 @@ class TransactionResource extends JsonResource
             $details['paymentTime'] = $this->pay_time;
         }
 
+        if ($this->councilor !== null) {
+            $details['councilor'] = $this->getCouncilorInfo();
+        }
+
         return $details;
     }
 
@@ -50,10 +54,13 @@ class TransactionResource extends JsonResource
         $student['firstName'] = $this->student->firstname;
         $student['middleName'] = $this->student->middlename;
         $student['lastName'] = $this->student->lastname;
+        $student['chineseFirstName'] = $this->student->chinese_firstname;
+        $student['chineseLastName'] = $this->student->chinese_lastname;
         $student['dob'] = $this->student->dob;
         $student['gender'] = $this->student->gender;
         $student['nationalId'] = $this->student->national_id;
         $student['studentIdNumber'] = $this->student->student_id_number;
+
 
         return $student;
     }
@@ -68,6 +75,8 @@ class TransactionResource extends JsonResource
         $payer['firstName'] = $this->payer->firstname;
         $payer['middleName'] = $this->payer->middlename;
         $payer['lastName'] = $this->payer->lastname;
+        $payer['chineseFirstName'] = $this->payer->chinese_firstname;
+        $payer['chineseLastName'] = $this->payer->chinese_lastname;
         $payer['dob'] = $this->payer->dob;
         $payer['gender'] = $this->payer->gender;
         $payer['nationalId'] = $this->payer->national_id;
@@ -80,5 +89,17 @@ class TransactionResource extends JsonResource
         $paymentMethod['id'] = $this->paymentMethod->id;
         $paymentMethod['name'] = $this->paymentMethod->name;
         return $paymentMethod;
+    }
+
+    protected function getCouncilorInfo(){
+        $councilor['id'] = $this->councilor->user->id;
+        $councilor['email'] = $this->councilor->user->email;
+        $councilor['phone'] = $this->councilor->user->phone;
+        $payer['firstName'] = $this->councilor->firstname;
+        $councilor['middleName'] = $this->councilor->middlename;
+        $councilor['lastName'] = $this->councilor->lastname;
+        $councilor['nationalId'] = $this->councilor->national_id;
+
+        return $councilor;
     }
 }

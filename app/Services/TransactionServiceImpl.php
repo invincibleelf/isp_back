@@ -11,6 +11,7 @@ namespace App\Services;
 use App\Models\Favourite;
 use DateTime;
 use GuzzleHttp\Client;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
 
@@ -30,6 +31,14 @@ class TransactionServiceImpl implements TransactionService
 
         Log::info("Associate student with transaction");
         $transaction->student()->associate($student->studentDetails);
+
+        $currentUser = Auth::user();
+
+        if($currentUser->role->name == "councilor"){
+            Log::info("Associate councilor with transaction");
+            $transaction->councilor()->associate($currentUser->councilorDetails);
+        }
+
 
         Log::info("Save Transaction");
         $transaction->save();

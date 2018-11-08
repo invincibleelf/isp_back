@@ -69,7 +69,7 @@ class TransactionController extends Controller
         $student = $this->userRepository->getStudentByIdAndCurrentUser($studentId, $currentUser);
 
         if ($student == null) {
-            return response(Utilities::getResponseMessage("Student with id : $studentId doesn't exist.", false, 400));
+            return response(Utilities::getResponseMessage("Student with id : $studentId doesn't exist for user $currentUser->email.", false, 400));
         }
 
         $transactions = $this->transctionRepository->getTransactionsbyStudent($student, $currentUser);
@@ -122,10 +122,13 @@ class TransactionController extends Controller
             ]);
 
 //      StudentId and url must be present if transaction is initiated by coucilor
-        $validator->sometimes(['studentId', 'url'], 'required', function () use ($currentUser) {
+        $validator->sometimes('studentId', 'required|integer', function () use ($currentUser) {
             return ($currentUser && $currentUser->role->name == 'councilor');
         });
 
+        $validator->sometimes('url', 'required|url', function () use ($currentUser) {
+            return ($currentUser && $currentUser->role->name == 'councilor');
+        });
 
         if ($validator->fails()) {
             Log::error("Validation Error");
