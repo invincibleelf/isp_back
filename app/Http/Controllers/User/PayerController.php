@@ -57,6 +57,9 @@ class PayerController extends Controller
      */
     public function store(Request $request)
     {
+        $currentUser = Auth::user();
+        Log::info("Inititater payer registration by " . $currentUser->role->name . " with email " . $currentUser->email);
+
         $fields = ['firstName', 'lastName', 'middleName', 'chineseFirstName', 'chineseLastName', 'dob', 'email', 'gender', 'password', 'confirmPassword', 'phone', 'nationalId', 'url', 'countryCode'];
         $credentials = $request->only($fields);
 
@@ -153,7 +156,7 @@ class PayerController extends Controller
     public function update(Request $request, $id)
     {
         $currentUser = Auth::user();
-        Log::info("Get payer with id " . $id . " for " . $currentUser->role->name . " with email " . $currentUser->email);
+        Log::info("Update payer with id " . $id . " for " . $currentUser->role->name . " with email " . $currentUser->email);
 
         $payer = $this->userRepository->getPayerByIdAndCurrentUser($id, $currentUser);
 
@@ -226,14 +229,14 @@ class PayerController extends Controller
     {
         $currentUser = Auth::user();
 
-        Log::info("Delete payer with id " . $id . " by student " . $currentUser->email);
+        Log::info("Delete payer with id $id by student $currentUser->email");
 
         $payer = $this->userRepository->getPayerByIdAndCurrentUser($id, $currentUser);
 
         if ($payer == null) {
-            Log::error("Payer with id " . $id . " doesn't exist for " . $currentUser->email);
+            Log::error("Payer with id  $id doesn't exist for $currentUser->email");
 
-            return response(Utilities::getResponseMessage("Payer with id " . $id . " doesn't exist for " . $currentUser->email, false, 404));
+            return response(Utilities::getResponseMessage("Payer with id $id doesn't exist for $currentUser->email", false, 404));
         }
 
         try {

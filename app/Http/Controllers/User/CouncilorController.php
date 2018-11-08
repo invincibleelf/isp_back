@@ -270,6 +270,8 @@ class CouncilorController extends Controller
         }
 
         $currentUser = Auth::user();
+        Log::info("Transfer students from councilors by agent $currentUser->email");
+
         $status = Config::get("enums.status.ACTIVE");
 
         $oldCouncilor = $this->userRepository->getVerifiedCouncilorByIdAndStatusAndCurrentAgent($credentials['fromId'], $status, $currentUser);
