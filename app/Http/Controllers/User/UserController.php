@@ -167,66 +167,70 @@ class UserController extends Controller
 
                 break;
 
-            case 'agent':
-                if ($currentUser->verified) {
-                    return response(Utilities::getResponseMessage("Verified agent cannot be updated. Please contact support", false, 400));
-                }
+//            case 'agent':
+//                if ($currentUser->verified) {
+//                    return response(Utilities::getResponseMessage("Verified agent cannot be updated. Please contact support", false, 400));
+//                }
+//
+//                $fields = ['agentName', 'location', 'phone', 'nationalId', 'legalRegistrationNumber', 'bankAccountNumber', 'bankAccountName', 'validBankOpening', 'countryCode'];
+//                $credentials = $request->only($fields);
+//
+//                $validator = Validator::make(
+//                    $credentials,
+//                    [
+//                        'agentName' => 'required|max:255',
+//                        'countryCode' => 'required_with:phone|numeric',
+//                        'phone' => 'required_with:countryCode|numeric',
+//                        'nationalId' => 'required',
+//                        'bankAccountNumber' => 'required',
+//                        'bankAccountName' => 'required',
+//                        'validBankOpening' => 'required',
+//                    ]
+//                );
+//                if ($validator->fails()) {
+//                    Log::error("Validation Error");
+//                    return response(Utilities::getResponseMessage($validator->messages(), false, '400'));
+//                }
+//
+//
+//                Log::info("Validate mobile number");
+//                if (array_key_exists('countryCode', $credentials)) {
+//                    $isValid = Utilities::validatePhoneNumber($credentials['countryCode'], $credentials['phone']);
+//                    if (!$isValid) {
+//                        Log::error("Phone number " . $credentials['phone'] . " is not valid ");
+//                        return response(Utilities::getResponseMessage("Phone number " . $credentials['phone'] . " is not valid ", false, 400));
+//
+//                    }
+//
+//                    $credentials['phone'] = Utilities::formatPhoneNumber($credentials['countryCode'], $credentials['phone']);
+//                }
+//
+//                try {
+//
+//                    DB::beginTransaction();
+//
+//                    $currentUser = $this->userService->updateAgent($currentUser, $credentials);
+//
+//                    DB::commit();
+//
+//                    return response(new UserResource($currentUser));
+//
+//                } catch (\Exception $e) {
+//                    //Roll back database if error
+//                    Log::error("Error while saving to database" . $e->getMessage());
+//                    DB::rollback();
+//                    return response()->json(['Error' => $e->getMessage()], 500);
+//                }
+//
+//                break;
 
-                $fields = ['agentName', 'location', 'phone', 'nationalId', 'legalRegistrationNumber', 'bankAccountNumber', 'bankAccountName', 'validBankOpening', 'countryCode'];
-                $credentials = $request->only($fields);
-
-                $validator = Validator::make(
-                    $credentials,
-                    [
-                        'agentName' => 'required|max:255',
-                        'countryCode' => 'required_with:phone|numeric',
-                        'phone' => 'required_with:countryCode|numeric',
-                        'nationalId' => 'required',
-                        'bankAccountNumber' => 'required',
-                        'bankAccountName' => 'required',
-                        'validBankOpening' => 'required',
-                    ]
-                );
-                if ($validator->fails()) {
-                    Log::error("Validation Error");
-                    return response(Utilities::getResponseMessage($validator->messages(), false, '400'));
-                }
-
-
-                Log::info("Validate mobile number");
-                if (array_key_exists('countryCode', $credentials)) {
-                    $isValid = Utilities::validatePhoneNumber($credentials['countryCode'], $credentials['phone']);
-                    if (!$isValid) {
-                        Log::error("Phone number " . $credentials['phone'] . " is not valid ");
-                        return response(Utilities::getResponseMessage("Phone number " . $credentials['phone'] . " is not valid ", false, 400));
-
-                    }
-
-                    $credentials['phone'] = Utilities::formatPhoneNumber($credentials['countryCode'], $credentials['phone']);
-                }
-
-                try {
-
-                    DB::beginTransaction();
-
-                    $currentUser = $this->userService->updateAgent($currentUser, $credentials);
-
-                    DB::commit();
-
-                    return response(new UserResource($currentUser));
-
-                } catch (\Exception $e) {
-                    //Roll back database if error
-                    Log::error("Error while saving to database" . $e->getMessage());
-                    DB::rollback();
-                    return response()->json(['Error' => $e->getMessage()], 500);
-                }
-
+            case "agent":
+                return response(Utilities::getResponseMessage("Update is not allowed. Please contact support for more information", false, 400));
                 break;
 
             //TODO Logic if needed for other roles
             default:
-                return response(Utilities::getResponseMessage("Invalid user role",false,400));
+                return response(Utilities::getResponseMessage("Invalid user role", false, 400));
                 break;
 
 

@@ -9,7 +9,7 @@
 namespace App\Services;
 
 
-use App\Jobs\SendPasswordResetEmail;
+use App\Jobs\SendEmailJob;
 use App\Mail\PasswordResetMail;
 use App\Mail\PasswordResetUserCreate;
 use App\Mail\PaymentConfirmationMail;
@@ -34,7 +34,7 @@ class EmailServiceImpl implements EmailService
 
 
         Log::info("Dispatch Job for sending email");
-        SendPasswordResetEmail::dispatch($passwordResetMail, $user->email);
+        SendEmailJob::dispatch($passwordResetMail, $user->email);
 
 
         // Mail::to($passwordReset->email)->send(new PasswordResetUserCreate($user,$url, $passwordReset->token));
@@ -53,7 +53,7 @@ class EmailServiceImpl implements EmailService
         $passwordResetMail = new PasswordResetUserCreate($user, $url, $passwordReset->token);
 
         Log::info("Dispatch Job for sending email");
-        SendPasswordResetEmail::dispatch($passwordResetMail, $user->email);
+        SendEmailJob::dispatch($passwordResetMail, $user->email);
 
     }
 
@@ -61,6 +61,6 @@ class EmailServiceImpl implements EmailService
     {
         $confirmPaymentMail = new PaymentConfirmationMail($user,$url);
         Log::info("Dispatch Job for sending email");
-        SendPasswordResetEmail::dispatch($confirmPaymentMail, $user->email);
+        SendEmailJob::dispatch($confirmPaymentMail, $user->email);
     }
 }

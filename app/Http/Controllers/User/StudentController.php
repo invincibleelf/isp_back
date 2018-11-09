@@ -66,7 +66,7 @@ class StudentController extends Controller
 
         $currentUser = Auth::user();
 
-        Log::info("Create student by councilor with email " . $currentUser->email);
+        Log::info("Create student by " . $currentUser->role->name . " with email " . $currentUser->email);
 
         $fields = ['firstName', 'lastName', 'middleName', 'chineseFirstName', 'chineseLastName', 'dob', 'email', 'gender', 'password', 'confirmPassword', 'phone', 'nationalId', 'studentIdNumber', 'url', 'countryCode'];
         $credentials = $request->only($fields);
@@ -176,7 +176,7 @@ class StudentController extends Controller
     public function update(Request $request, $id)
     {
         $currentUser = Auth::user();
-        Log::info("Update student with id " . $id . " by " . $currentUser->role->name . " " . $currentUser->email);
+        Log::info("Update student with id $id by " . $currentUser->role->name . " " . $currentUser->email);
 
         $student = $this->userRepository->getStudentByIdAndCurrentUser($id, $currentUser);
         if ($student == null) {

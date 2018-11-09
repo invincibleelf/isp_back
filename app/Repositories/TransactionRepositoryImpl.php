@@ -30,9 +30,7 @@ class TransactionRepositoryImpl implements TransactionRepository
                 break;
 
             case "councilor":
-                $transactions = Transaction::with('student', 'payer')->whereHas('student.councilor', function ($q) use ($currentUser) {
-                    $q->where("id", $currentUser->councilorDetails->id);
-                })->get();
+                $transactions = Transaction::with('student', 'payer')->where('councilor_id', $currentUser->councilorDetails->id)->get();
                 break;
 
             case "student":
@@ -50,16 +48,28 @@ class TransactionRepositoryImpl implements TransactionRepository
 
     public function getTransactionsByStudent($student, $currentUser)
     {
+        switch ($currentUser->role->name) {
 
-        $transactions = Transaction::with('student', 'payer')->where('student_id', '=', $student->studentDetails->id)->get();
+            case "councior":
+                $transactions = Transaction::with('student', 'payer')
+                    ->where('student_id', '=', $student->studentDetails->id)
+                    ->where('councilor_id', $currentUser->councilorDetails->id)
+                    ->get();
+                break;
 
+            case "agent":
+                $transactions = Transaction::with('student', 'payer')
+                    ->where('student_id', '=', $student->studentDetails->id)
+                    ->get();
+                break;
+        }
         return $transactions;
     }
 
 
     public function getTransactionById($id)
     {
-        $transaction = Transaction::with('student', 'payer')->find($id);
+        $transaction = Transaction::with('student', 'payer', 'councilor')->find($id);
 
         return $transaction;
     }

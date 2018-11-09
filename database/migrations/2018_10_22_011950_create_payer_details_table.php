@@ -25,7 +25,6 @@ class CreatePayerDetailsTable extends Migration
             $table->date('dob');
             $table->string('gender')->nullable();
             $table->string('national_id');
-            $table->string('bank_account_number');
             $table->integer('bux_id')->nullable();
             $table->timestamps();
         });
