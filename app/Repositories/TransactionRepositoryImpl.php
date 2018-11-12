@@ -50,7 +50,7 @@ class TransactionRepositoryImpl implements TransactionRepository
     {
         switch ($currentUser->role->name) {
 
-            case "councior":
+            case "councilor":
                 $transactions = Transaction::with('student', 'payer')
                     ->where('student_id', '=', $student->studentDetails->id)
                     ->where('councilor_id', $currentUser->councilorDetails->id)
