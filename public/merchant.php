@@ -1,25 +1,7 @@
-<?php
-return [
+﻿<?php
 
-    'bux_base_url' => 'http://preprod.isp.api.bux.com/',
-    'bux_student' => 'users/student/',
-    'bux_list_students' => 'users/students',
-
-    'country_codes' => [
-        'AU'=>61,
-        'CH'=>86,
-        'IN'=>91,
-
-    ],
-    'HYLCONFIG' => [
-    	'HYLSITE' => 'https://elgw.gnete.com.hk:2221/easylink-mall-api/pay',
-    	'HYLCHECK' => 'https://elgw.gnete.com.hk:2221/easylink-mall-api/query',
-    	'SECRETKEY' => '98d0fe7c5be14df8b075d37204abbab1',
-    	'MERID' => '0000000065',
-    ],
-    'DINPAYCONFIG' =>[
-    	'merchant_private_key' => <<<EOD
------BEGIN RSA PRIVATE KEY-----
+//merchant_private_key,商户私钥
+$merchant_private_key= '-----BEGIN RSA PRIVATE KEY-----
 MIICXQIBAAKBgQC3//sR2tXw0wrC2DySx8vNGlqt3Y7ldU9+LBLI6e1KS5lfc5jl
 TGF7KBTSkCHBM3ouEHWqp1ZJ85iJe59aF5gIB2klBd6h4wrbbHA2XE1sq21ykja/
 Gqx7/IRia3zQfxGv/qEkyGOx+XALVoOlZqDwh76o2n1vP1D+tD3amHsK7QIDAQAB
@@ -33,34 +15,39 @@ oiq+Y8SgCCs73qixrU1YpJy9yKA/meG9smsl4Oh9IOIGI+zUygh9YdSmEq0CQQC2
 4G3IP2G3lNDRdZIm5NZ7PfnmyRabxk/UgVUWdk47IwTZHFkdhxKfC8QepUhBsAHL
 QjifGXY4eJKUBm3FpDGJAkAFwUxYssiJjvrHwnHFbg0rFkvvY63OSmnRxiL4X6EY
 yI9lblCsyfpl25l7l5zmJrAHn45zAiOoBrWqpM5edu7c
------END RSA PRIVATE KEY-----
-EOD
-,
-		//dinpay_public_key,智付公钥
-		'dinpay_public_key' => <<<EOD
------BEGIN PUBLIC KEY-----
+-----END RSA PRIVATE KEY-----';
+
+
+//dinpay_public_key,智付公钥
+$dinpay_public_key = '-----BEGIN PUBLIC KEY-----
 MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCWOq5aHSTvdxGPDKZWSl6wrPpn
 MHW+8lOgVU71jB2vFGuA6dwa/RpJKnz9zmoGryZlgUmfHANnN0uztkgwb+5mpgme
 gBbNLuGqqHBpQHo2EsiAhgvgO3VRmWC8DARpzNxknsJTBhkUvZdy4GyrjnUrvsAR
 g4VrFzKDWL0Yu3gunQIDAQAB
------END PUBLIC KEY-----'
-EOD
-,
+-----END PUBLIC KEY-----'; 
 
 
-		//encryption_key,加密密钥
-		'encryption_key' => <<<EOD
------BEGIN PUBLIC KEY-----
+//encryption_key,加密密钥
+$encryption_key = '-----BEGIN PUBLIC KEY-----
 MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCWOq5aHSTvdxGPDKZWSl6wrPpn
 MHW+8lOgVU71jB2vFGuA6dwa/RpJKnz9zmoGryZlgUmfHANnN0uztkgwb+5mpgme
 gBbNLuGqqHBpQHo2EsiAhgvgO3VRmWC8DARpzNxknsJTBhkUvZdy4GyrjnUrvsAR
 g4VrFzKDWL0Yu3gunQIDAQAB
------END PUBLIC KEY-----
-EOD
-,
-		'merchant_code' => '1111110166',
-		'url' => 'https://api.dinpay.com/gateway/api/express',
-	],
+-----END PUBLIC KEY-----'; 
 
-];
+function  postCurl($postdata,$url){
+		
+		$ch = curl_init();
+		curl_setopt($ch,CURLOPT_URL,$url);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+		curl_setopt($ch, CURLOPT_POST, true);
+		curl_setopt($ch, CURLOPT_HEADER, false);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postdata));  
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		$response=curl_exec($ch);
+		return  $response;
+	}
+
+
 ?>
