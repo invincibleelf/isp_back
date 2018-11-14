@@ -127,7 +127,7 @@ Route::post('transfer-student', 'User\CouncilorController@transferStudents')->mi
  *
  */
 
-Route::apiResource('merchant', 'MerchantController')->only(['index', 'show', 'update'])->middleware('roles');
+Route::apiResource('merchant', 'MerchantController')->only(['index', 'show', 'update']);
 
 
 /***
