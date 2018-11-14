@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateMerchantServiceTable extends Migration
+class CreateFavouritesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,9 +13,12 @@ class CreateMerchantServiceTable extends Migration
      */
     public function up()
     {
-        Schema::create('merchant_service', function (Blueprint $table) {
-            $table->integer('merchant_id');
-            $table->integer('service_id');
+        Schema::create('favourites', function (Blueprint $table) {
+            $table->increments('id');
+            $table->integer('user_id')->unsigned();
+            $table->integer('transaction_id')->unsigned();
+            $table->timestamps();
+
         });
     }
 
@@ -26,6 +29,6 @@ class CreateMerchantServiceTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('merchant_service');
+        Schema::dropIfExists('favourites');
     }
 }

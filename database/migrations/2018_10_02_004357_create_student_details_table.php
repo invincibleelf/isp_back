@@ -19,7 +19,8 @@ class CreateStudentDetailsTable extends Migration
             $table->string('firstname', 255);
             $table->string('middlename', 255)->nullable();
             $table->string('lastname', 255);
-            $table->string('chinese_name')->nullable();
+            $table->string('chinese_firstname')->nullable();
+            $table->string('chinese_lastname')->nullable();
             $table->date('dob');
             $table->string('gender')->nullable();
             $table->string('national_id');

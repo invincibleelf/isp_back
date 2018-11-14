@@ -2,8 +2,6 @@
 
 namespace App\Jobs;
 
-use App\Mail\PasswordResetUserCreate;
-use App\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailer;
 use Illuminate\Queue\SerializesModels;
@@ -13,7 +11,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
-class SendPasswordResetEmail implements ShouldQueue
+class SendEmailJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -42,5 +40,11 @@ class SendPasswordResetEmail implements ShouldQueue
 
         Log::info("Send email to ".$this->email);
         Mail::to($this->email)->send($this->mailable);
+    }
+
+
+    public function failed(\Exception $exception)
+    {
+        Log::info("Job failed with exception $exception->getMessage();");
     }
 }

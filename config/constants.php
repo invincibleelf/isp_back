@@ -11,6 +11,7 @@ return [
         'IN'=>91,
 
     ],
+
     'HYLCONFIG' => [
     	'HYLSITE' => 'https://elgw.gnete.com.hk:2221/easylink-mall-api/pay',
     	'HYLCHECK' => 'https://elgw.gnete.com.hk:2221/easylink-mall-api/query',
@@ -61,6 +62,11 @@ EOD
 		'merchant_code' => '1111110166',
 		'url' => 'https://api.dinpay.com/gateway/api/express',
 	],
+
+
+    'link'=>[
+        'transaction_status'=>"ajslakjd/slsdk" // Add link to email
+    ]
 
 ];
 ?>

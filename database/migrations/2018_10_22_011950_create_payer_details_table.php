@@ -20,11 +20,11 @@ class CreatePayerDetailsTable extends Migration
             $table->string('firstname', 255);
             $table->string('middlename', 255)->nullable();
             $table->string('lastname', 255);
-            $table->string('chinese_name', 255)->nullable();
+            $table->string('chinese_firstname', 255)->nullable();
+            $table->string('chinese_lastname', 255)->nullable();
             $table->date('dob');
             $table->string('gender')->nullable();
             $table->string('national_id');
-            $table->string('bank_account_number');
             $table->integer('bux_id')->nullable();
             $table->timestamps();
         });

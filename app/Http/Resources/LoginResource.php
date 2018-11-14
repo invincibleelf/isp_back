@@ -41,6 +41,8 @@ class LoginResource extends JsonResource
                 $details['firstName'] = $this->studentDetails->firstname;
                 $details['middleName'] = $this->studentDetails->middlename;
                 $details['lastName'] = $this->studentDetails->lastname;
+                $details['chineseFirstName'] = $this->studentDetails->chinese_firstname;
+                $details['chineseLastName'] = $this->studentDetails->chinese_lastname;
                 $details['dob'] = $this->studentDetails->dob;
                 $details['gender'] = $this->studentDetails->gender;
                 $details['nationalId'] = $this->studentDetails->national_id;
@@ -68,6 +70,17 @@ class LoginResource extends JsonResource
                 $details["validBankOpening"] = $this->agentDetails->valid_bank_opening;
                 $details["bankAccountNumber"] = $this->agentDetails->bank_account_number;
                 $details["bankAccountName"] = $this->agentDetails->bank_account_name;
+                break;
+
+            case "payer":
+                $details['firstName'] = $this->payerDetails->firstname;
+                $details['middleName'] = $this->payerDetails->middlename;
+                $details['lastName'] = $this->payerDetails->lastname;
+                $details['chineseFirstName'] = $this->payerDetails->chinese_firstname;
+                $details['chineseLastName'] = $this->payerDetails->chinese_lastname;
+                $details['dob'] = $this->payerDetails->dob;
+                $details['gender'] = $this->payerDetails->gender;
+                $details['nationalId'] = $this->payerDetails->national_id;
                 break;
 
 

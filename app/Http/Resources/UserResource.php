@@ -39,6 +39,8 @@ class UserResource extends JsonResource
                 $details['firstName'] = $this->studentDetails->firstname;
                 $details['middleName'] = $this->studentDetails->middlename;
                 $details['lastName'] = $this->studentDetails->lastname;
+                $details['chineseFirstName'] = $this->studentDetails->chinese_firstname;
+                $details['chineseLastName'] = $this->studentDetails->chinese_lastname;
                 $details['dob'] = $this->studentDetails->dob;
                 $details['gender'] = $this->studentDetails->gender;
                 $details['nationalId'] = $this->studentDetails->national_id;
@@ -67,10 +69,11 @@ class UserResource extends JsonResource
                 $details['firstName'] = $this->payerDetails->firstname;
                 $details['middleName'] = $this->payerDetails->middlename;
                 $details['lastName'] = $this->payerDetails->lastname;
+                $details['chineseFirstName'] = $this->payerDetails->chinese_firstname;
+                $details['chineseLastName'] = $this->payerDetails->chinese_lastname;
                 $details['dob'] = $this->payerDetails->dob;
                 $details['gender'] = $this->payerDetails->gender;
                 $details['nationalId'] = $this->payerDetails->national_id;
-                $details['bankAccountNumber'] = $this->payerDetails->bank_account_number;
                 break;
         }
 
