@@ -24,10 +24,16 @@ use Illuminate\Http\Request;
 
 // api for the usage of different payment
 Route::resource('payment', 'PaymentControllers\PaymentController');
+//the last step of any payment
+Route::post('payment/pay', 'PaymentControllers\PaymentController@pay')->middleware('roles:student');
 
+//the sets of payments complete methods
 Route::post('payment/HYLcomplete', 'PaymentControllers\PaymentController@HYLcomplete');
-
-
+Route::post('payment/DINPAYcomplete', 'PaymentControllers\PaymentController@DINPAYcomplete');
+Route::post('payment/signQuery', 'PaymentControllers\PaymentController@signQuery');
+Route::post('payment/getSMS', 'PaymentControllers\PaymentController@getSMS');
+//check transaction status
+Route::get('payment/transactionStatus/{transactionId}', 'PaymentControllers\PaymentController@getTransactionStatus');
 /***
  *
  * Routes for User Login and egistration

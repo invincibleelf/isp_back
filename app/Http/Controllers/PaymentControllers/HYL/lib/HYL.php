@@ -1,7 +1,8 @@
 <?php
-namespace App\Http\Controllers\PaymentControllers;
+namespace App\Http\Controllers\PaymentControllers\HYL\lib;
 //defined('HYLSITE') or define('HYLSITE', 'https://elgw.gnete.com.hk:2221/easylink-mall-api');//local site 通知地址 
-class Payment {
+use Illuminate\Support\Facades\Config;
+class HYL {
 
     public function handleErr($post) {
         if(empty($post)) {
@@ -23,7 +24,7 @@ class Payment {
           $str .= $key.'='.$val.'&'; 
         }
         $str .= 'riskRateInfo='.$risk.'&signature='.$signature;
-        $url = HYLSITE;
+        $url = Config::get('constants.HYLCONFIG.HYLSITE');
 		
 		$arr["riskRateInfo"] = $risk;
 		$arr["signature"] = $signature;
