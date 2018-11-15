@@ -76,7 +76,8 @@ class TransactionRepositoryImpl implements TransactionRepository
 
     public function getTransactionByTransactionSNAndStudentId($transactionSN, $studentId)
     {
-        $transaction = Transaction::with('payer', 'student')->where('transaction_sn', $transactionSN)->where('student_id', '=', $studentId)->first();
+        $transaction = Transaction::with('payer', 'student')->where('transaction_sn', $transactionSN)
+            ->where('student_id', '=', $studentId)->first();
 
         return $transaction;
     }
@@ -85,6 +86,27 @@ class TransactionRepositoryImpl implements TransactionRepository
     {
         $transaction = Transaction::whereIn('id', $favouriteIds)->get();
         return $transaction;
+    }
+
+    public function getTransactionByTransactionSNAndCurrentUser($transactionSN, $currentUser)
+    {
+        switch ($currentUser->role->name) {
+            case "agent":
+                //TODO Implement for councilor if needed
+                break;
+
+
+            case "councilor":
+                //TODO Implement for councilor if needed
+                break;
+
+            case "student":
+                $transaction = Transaction::with('student')->where('transaction_sn', $transactionSN)
+                    ->where('student_id','=',$currentUser->studentDetails->id)->first();
+                return $transaction;
+                break;
+        }
+
     }
 
 

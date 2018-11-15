@@ -16,5 +16,7 @@ interface TransactionRepository
 
     public function getTransctionsByFavouriteIds($favouriteIds);
 
+    public function getTransactionByTransactionSNAndCurrentUser($transactionSN, $currentUser);
+
 
 }

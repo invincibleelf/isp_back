@@ -81,17 +81,18 @@ class TransactionController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  int $id
+     * @param  int $transactionSN
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show($transactionSN)
     {
-        Log::info("Get transaction id : $id ");
+        $currentUser = Auth::user();
+        Log::info("Get transaction for sn : $transactionSN ");
 
-        $transaction = $this->transctionRepository->getTransactionById($id);
+        $transaction = $this->transctionRepository->getTransactionByTransactionSNAndCurrentUser($transactionSN, $currentUser);
 
         if ($transaction == null) {
-            return response(Utilities::getResponseMessage("Transaction with id  $id is not available", false, 400));
+            return response(Utilities::getResponseMessage("Transaction with transaction SN $transactionSN is not available", false, 400));
         }
 
         return response(new TransactionResource($transaction));
@@ -182,7 +183,8 @@ class TransactionController extends Controller
             DB::commit();
 
             if ($currentUser->role->name == "councilor") {
-                $this->emailService->sendEmailToConfirmPayment($student, $credentials['url']);
+                $url = $credentials['url'] . "transactionSN=" . $transaction->transaction_sn;
+                $this->emailService->sendEmailToConfirmPayment($student, $url);
             }
 
             return response(new TransactionResource($transaction));
