@@ -31,7 +31,6 @@ class UserServiceImpl implements UserService
             $payer->phone = $credentials['countryCode'] . $credentials['phone'];
         }
         $payer->email = $credentials['email'];
-        $payer->password = bcrypt($credentials['password']);
         $payer->verified = true;
         $payer->status = Config::get('enums.status.ACTIVE');
         $payer->role()->associate((Role::where('name', 'payer')->first()));

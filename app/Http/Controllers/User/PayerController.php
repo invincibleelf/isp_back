@@ -60,7 +60,7 @@ class PayerController extends Controller
         $currentUser = Auth::user();
         Log::info("Inititater payer registration by " . $currentUser->role->name . " with email " . $currentUser->email);
 
-        $fields = ['firstName', 'lastName', 'middleName', 'chineseFirstName', 'chineseLastName', 'dob', 'email', 'gender', 'password', 'confirmPassword', 'phone', 'nationalId', 'url', 'countryCode'];
+        $fields = ['firstName', 'lastName', 'middleName', 'chineseFirstName', 'chineseLastName', 'dob', 'email', 'gender', 'phone', 'nationalId', 'url', 'countryCode'];
         $credentials = $request->only($fields);
 
         $validator = Validator::make(
@@ -76,8 +76,6 @@ class PayerController extends Controller
                 'phone' => 'required_with:countryCode|numeric',
                 'email' => 'required|email|max:255|unique:login_users_c',
                 'nationalId' => 'required',
-                'password' => 'required|min:6',
-                'confirmPassword' => 'required_with:password|same:password',
                 'url' => 'required|url'
             ]
         );
