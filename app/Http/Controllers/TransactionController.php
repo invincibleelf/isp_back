@@ -183,7 +183,7 @@ class TransactionController extends Controller
             DB::commit();
 
             if ($currentUser->role->name == "councilor") {
-                $url = $credentials['url'] . "transactionSN=" . $transaction->transaction_sn;
+                $url = $credentials['url'] . $transaction->transaction_sn;
                 $this->emailService->sendEmailToConfirmPayment($student, $url);
             }
 
@@ -256,7 +256,6 @@ class TransactionController extends Controller
             DB::beginTransaction();
 
             $transaction = $this->transactionService->updateTransaction($transaction, $credentials, $payer, $paymentMethod);
-
 
 
             $responseBux = $this->transactionService->createTransactionAtBux($transaction);
