@@ -11,7 +11,8 @@ namespace App\Repositories;
 
 use App\User;
 use App\StudentDetail;
-use App\PayerDetail;
+use Illuminate\Support\Facades\Config;
+
 
 class UserRepositoryImpl implements UserRepository
 {
@@ -21,7 +22,7 @@ class UserRepositoryImpl implements UserRepository
     {
         $payers = User::with("payerDetails")->whereHas('payerDetails.student', function ($q) use ($currentUser) {
             $q->where('id', $currentUser->studentDetails->id);
-        })->get();
+        })->where('status','=',Config::get('enums.status.ACTIVE'))->get();
 
         return $payers;
     }
@@ -30,7 +31,7 @@ class UserRepositoryImpl implements UserRepository
     {
         $payer = User::with("payerDetails")->whereHas("payerDetails.student", function ($q) use ($currentUser) {
             $q->where('id', $currentUser->studentDetails->id);
-        })->find($id);
+        })->where('status','=',Config::get('enums.status.ACTIVE'))->find($id);
 
         return $payer;
     }
