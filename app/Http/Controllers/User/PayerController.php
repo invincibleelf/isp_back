@@ -240,7 +240,7 @@ class PayerController extends Controller
         try {
             DB::beginTransaction();
 
-            $payer->status = Config::get('enums . status . DELETED');
+            $payer->status = Config::get('enums.status.DELETED');
             $payer->save();
 
             DB::commit();
