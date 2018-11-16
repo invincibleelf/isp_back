@@ -34,6 +34,7 @@ class LoginResource extends JsonResource
         $details["id"] = $this->id;
         $details['email'] = $this->email;
         $details['phone'] = $this->phone;
+        $details['status'] = $this->status;
 
         switch ($this->role->name) {
             case "student":
